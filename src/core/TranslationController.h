@@ -1,0 +1,73 @@
+#pragma once
+
+#include "core/TranslationTypes.h"
+
+#include <QObject>
+
+#include <optional>
+
+namespace translunix {
+
+class AppSettings;
+class HistoryStore;
+class ProviderClient;
+class SecretStore;
+
+class TranslationController final : public QObject {
+    Q_OBJECT
+
+public:
+    TranslationController(AppSettings* settings,
+                          SecretStore* secretStore,
+                          HistoryStore* history,
+                          QObject* parent = nullptr);
+
+    void translate(const QString& input,
+                   const QString& sourceCode,
+                   const QString& targetCode,
+                   const QString& context = {});
+    void cancel();
+
+    void saveApiKey(const QString& apiKey, bool persist);
+    void clearApiKey();
+    void refreshFreeModels();
+
+    [[nodiscard]] bool isBusy() const;
+    [[nodiscard]] QString credentialAccount() const;
+    [[nodiscard]] const QVector<TranslationRecord>& historyRecords() const;
+    void clearHistory();
+
+signals:
+    void requestStarted();
+    void translationChunk(const QString& text);
+    void translationFinished(const QString& text);
+    void requestFailed(const QString& message);
+    void modelsLoaded(const QVector<ModelInfo>& models);
+    void modelsFailed(const QString& message);
+    void apiKeyStored(bool persistent, const QString& error);
+    void apiKeyDeleted(const QString& error);
+    void historyChanged();
+
+private:
+    enum class SecretPurpose { None, Translation, Models };
+
+    void applyHistoryPolicy();
+    void handleSecretRead(const QString& account, const QString& secret, const QString& error);
+    [[nodiscard]] std::optional<TranslationRequest>
+    buildRequest(const QString& input,
+                 const QString& sourceCode,
+                 const QString& targetCode,
+                 const QString& context,
+                 QString* error) const;
+    [[nodiscard]] static QString accountForProvider(const ProviderSettings& provider);
+
+    AppSettings* m_settings;
+    SecretStore* m_secretStore;
+    HistoryStore* m_history;
+    ProviderClient* m_client;
+    SecretPurpose m_secretPurpose = SecretPurpose::None;
+    std::optional<TranslationRequest> m_pendingRequest;
+    std::optional<TranslationRequest> m_activeRequest;
+};
+
+} // namespace translunix
