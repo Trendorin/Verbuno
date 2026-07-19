@@ -3,7 +3,7 @@
 ## Protected assets
 
 - provider API keys;
-- translation text and optional context;
+- translation text and translation preferences;
 - integrity of the configured provider destination;
 - local translation history;
 - predictable application lifetime and local instance commands.
@@ -12,7 +12,7 @@
 
 The local user session, Qt libraries and desktop wallet are inside the operational boundary. The configured API endpoint, OpenRouter, upstream model providers, DNS, certificate authorities and the network are external dependencies.
 
-TranslUnix assumes the operating system and current desktop session are not already compromised. It does not defend against root, same-user debuggers, malicious input methods, screen capture, hostile clipboard managers or a provider that violates its stated policy.
+Verbuno assumes the operating system and current desktop session are not already compromised. It does not defend against root, same-user debuggers, malicious input methods, screen capture, hostile clipboard managers or a provider that violates its stated policy.
 
 ## Controls
 
@@ -50,10 +50,10 @@ TranslUnix assumes the operating system and current desktop session are not alre
 ## Known limitations
 
 - A provider can observe requests sent to it and can return malicious or incorrect text.
-- Privacy-routing metadata is only meaningful when the provider implements it; TranslUnix currently enforces it only for OpenRouter.
+- Privacy-routing metadata is only meaningful when the provider implements it; Verbuno currently enforces it only for OpenRouter.
 - Wayland window placement is compositor-controlled.
 - QtKeychain can prompt or block while a locked wallet is being unlocked by the desktop.
-- Free models have external quotas and can disappear without a TranslUnix release.
+- Free models have external quotas and can disappear without a Verbuno release.
 
 ## Reporting
 

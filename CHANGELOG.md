@@ -2,6 +2,24 @@
 
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use semantic versioning.
 
+## [0.2.0] - 2026-07-19
+
+### Added
+
+- Exact response-reported model display for OpenRouter routers such as `openrouter/free`.
+- Selected upstream inference provider display from OpenRouter routing metadata.
+- Automatic first-run migration of settings, local history and remembered wallet keys from TranslUnix.
+
+### Changed
+
+- Renamed the product, executable, package, application ID and repository from TranslUnix to Verbuno.
+- Provider summaries now distinguish the requested model or router from the model actually used.
+- Release packages replace the former `translunix` package where the package manager supports upgrades.
+
+### Removed
+
+- Optional per-request context field from the translation workspace and request prompt.
+
 ## [0.1.1] - 2026-07-19
 
 ### Added
@@ -13,7 +31,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 ### Changed
 
 - Replaced the frameless tray popup with a standard system-decorated Qt window.
-- Tray activation and `translunix --toggle` now operate on the normal main window.
+- Tray activation and `verbuno --toggle` now operate on the normal main window.
 - Window minimizing, maximizing, resizing and placement are handled natively by KDE, GNOME or the active compositor.
 
 ## [0.1.0] - 2026-07-19
@@ -31,5 +49,6 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - DEB, RPM, Arch, TXZ, source, SPDX, PKGBUILD and SHA-256 release artifacts.
 - Ubuntu, Fedora, Arch, sanitizer and CodeQL validation.
 
-[0.1.1]: https://github.com/Trendorin/TranslUnix/releases/tag/v0.1.1
-[0.1.0]: https://github.com/Trendorin/TranslUnix/releases/tag/v0.1.0
+[0.2.0]: https://github.com/Trendorin/Verbuno/releases/tag/v0.2.0
+[0.1.1]: https://github.com/Trendorin/Verbuno/releases/tag/v0.1.1
+[0.1.0]: https://github.com/Trendorin/Verbuno/releases/tag/v0.1.0

@@ -8,7 +8,7 @@ class QPlainTextEdit;
 class QPushButton;
 class QToolButton;
 
-namespace translunix {
+namespace verbuno {
 
 class AppSettings;
 class TranslationController;
@@ -26,8 +26,6 @@ public:
     void setInputText(const QString& text);
     [[nodiscard]] QString outputText() const;
     void setOutputText(const QString& text);
-    [[nodiscard]] QString contextText() const;
-    void setContextText(const QString& text);
 
 private:
     void populateLanguages();
@@ -54,7 +52,6 @@ private:
     QComboBox* m_styleCombo = nullptr;
     QPlainTextEdit* m_input = nullptr;
     QPlainTextEdit* m_output = nullptr;
-    QPlainTextEdit* m_context = nullptr;
     QLabel* m_counter = nullptr;
     QLabel* m_status = nullptr;
     QLabel* m_providerSummary = nullptr;
@@ -64,4 +61,4 @@ private:
     QToolButton* m_swapButton = nullptr;
 };
 
-} // namespace translunix
+} // namespace verbuno

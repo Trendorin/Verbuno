@@ -4,18 +4,29 @@
 
 #include <algorithm>
 
-namespace translunix {
+namespace verbuno {
 
 namespace {
 constexpr auto kOpenRouterChat = "https://openrouter.ai/api/v1/chat/completions";
 constexpr auto kOpenRouterModels = "https://openrouter.ai/api/v1/models";
 constexpr auto kDefaultModel = "openrouter/free";
+constexpr auto kLegacyMigration = "migration/translunix-0.1";
 } // namespace
 
 AppSettings::AppSettings(QObject* parent)
     : QObject(parent)
-    , m_settings(QStringLiteral("Trendorin"), QStringLiteral("TranslUnix")) {
+    , m_settings(QStringLiteral("Trendorin"), QStringLiteral("Verbuno")) {
     m_settings.setAtomicSyncRequired(true);
+    if (!m_settings.contains(QString::fromLatin1(kLegacyMigration))) {
+        QSettings legacy(QStringLiteral("Trendorin"), QStringLiteral("TranslUnix"));
+        for (const QString& key : legacy.allKeys()) {
+            if (!m_settings.contains(key)) {
+                m_settings.setValue(key, legacy.value(key));
+            }
+        }
+        m_settings.setValue(QString::fromLatin1(kLegacyMigration), true);
+        m_settings.sync();
+    }
 }
 
 ProviderSettings AppSettings::provider() const {
@@ -204,4 +215,4 @@ void AppSettings::sync() {
     emit changed();
 }
 
-} // namespace translunix
+} // namespace verbuno

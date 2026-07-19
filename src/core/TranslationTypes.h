@@ -6,7 +6,7 @@
 #include <QUrl>
 #include <QVector>
 
-namespace translunix {
+namespace verbuno {
 
 enum class TranslationStyle {
     Natural = 0,
@@ -34,7 +34,6 @@ struct TranslationRequest {
     QString targetCode;
     QString targetName;
     TranslationStyle style = TranslationStyle::Natural;
-    QString context;
     QString customInstruction;
     bool preserveFormatting = true;
     ProviderSettings provider;
@@ -50,6 +49,15 @@ struct TranslationRecord {
     QString model;
 };
 
+struct InferenceRoute {
+    QString provider;
+    QString model;
+
+    [[nodiscard]] bool isEmpty() const {
+        return provider.isEmpty() && model.isEmpty();
+    }
+};
+
 struct ModelInfo {
     QString id;
     QString name;
@@ -57,7 +65,8 @@ struct ModelInfo {
     bool free = false;
 };
 
-} // namespace translunix
+} // namespace verbuno
 
-Q_DECLARE_METATYPE(translunix::ModelInfo)
-Q_DECLARE_METATYPE(QVector<translunix::ModelInfo>)
+Q_DECLARE_METATYPE(verbuno::ModelInfo)
+Q_DECLARE_METATYPE(QVector<verbuno::ModelInfo>)
+Q_DECLARE_METATYPE(verbuno::InferenceRoute)

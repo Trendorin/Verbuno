@@ -19,7 +19,7 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
-namespace translunix {
+namespace verbuno {
 
 namespace {
 const QUrl kOpenRouterChat(QStringLiteral("https://openrouter.ai/api/v1/chat/completions"));
@@ -35,7 +35,7 @@ SettingsDialog::SettingsDialog(AppSettings* settings,
     setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowSystemMenuHint |
                    Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint |
                    Qt::WindowCloseButtonHint);
-    setWindowTitle(tr("TranslUnix Settings"));
+    setWindowTitle(tr("Verbuno Settings"));
     setMinimumSize(720, 610);
     resize(780, 680);
 
@@ -152,7 +152,7 @@ QWidget* SettingsDialog::createProviderPage() {
     root->addWidget(routingBox);
 
     auto* notice = new QLabel(
-        tr("TranslUnix sends text only to this endpoint. OpenRouter is a proxy: the selected "
+        tr("Verbuno sends text only to this endpoint. OpenRouter is a proxy: the selected "
            "upstream provider may have its own retention or training policy. Free endpoints can "
            "be rate-limited or unavailable. Review OpenRouter privacy settings before sending "
            "sensitive content."),
@@ -299,12 +299,12 @@ QWidget* SettingsDialog::createGeneralPage() {
     root->addWidget(languageNote);
 
     m_startInTray = new QCheckBox(tr("Start in the system tray"), page);
-    m_closeToTray = new QCheckBox(tr("Closing the main window keeps TranslUnix in the tray"), page);
+    m_closeToTray = new QCheckBox(tr("Closing the main window keeps Verbuno in the tray"), page);
     root->addWidget(m_startInTray);
     root->addWidget(m_closeToTray);
 
     auto* shortcut = new QLabel(
-        tr("Desktop shortcut command: <code>translunix --toggle</code><br>"
+        tr("Desktop shortcut command: <code>verbuno --toggle</code><br>"
            "Bind this command in KDE or GNOME keyboard settings for a compositor-safe global "
            "shortcut."),
         page);
@@ -314,7 +314,7 @@ QWidget* SettingsDialog::createGeneralPage() {
 
     auto* desktopNote = new QLabel(
         tr("KDE Plasma has native tray support. GNOME may require an AppIndicator extension; when "
-           "no tray is available, TranslUnix opens the main window instead."),
+           "no tray is available, Verbuno opens the main window instead."),
         page);
     desktopNote->setWordWrap(true);
     root->addWidget(desktopNote);
@@ -457,4 +457,4 @@ void SettingsDialog::populateModels(const QVector<ModelInfo>& models) {
     m_providerStatus->setText(tr("Loaded %1 currently free models.").arg(models.size()));
 }
 
-} // namespace translunix
+} // namespace verbuno

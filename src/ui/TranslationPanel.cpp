@@ -18,7 +18,7 @@
 #include <QToolButton>
 #include <QVBoxLayout>
 
-namespace translunix {
+namespace verbuno {
 
 TranslationPanel::TranslationPanel(TranslationController* controller,
                                    AppSettings* settings,
@@ -88,14 +88,6 @@ TranslationPanel::TranslationPanel(TranslationController* controller,
     m_input->setMinimumHeight(190);
     root->addWidget(m_input, 1);
 
-    auto* contextLabel = new QLabel(tr("Optional context"), this);
-    m_context = new QPlainTextEdit(this);
-    m_context->setPlaceholderText(
-        tr("Domain, audience, terminology, or surrounding context for disambiguation"));
-    m_context->setMaximumHeight(86);
-    root->addWidget(contextLabel);
-    root->addWidget(m_context);
-
     auto* actionRow = new QHBoxLayout;
     auto* clearButton = new QPushButton(tr("Clear"), this);
     m_translateButton = new QPushButton(tr("Translate"), this);
@@ -162,9 +154,6 @@ TranslationPanel::TranslationPanel(TranslationController* controller,
         m_input->clear();
         m_output->clear();
         m_status->clear();
-        if (m_context) {
-            m_context->clear();
-        }
         focusInput();
     });
     connect(copyButton, &QPushButton::clicked, this, [this] {
@@ -182,6 +171,8 @@ TranslationPanel::TranslationPanel(TranslationController* controller,
             &TranslationPanel::beginRequest);
     connect(m_controller, &TranslationController::translationChunk, this,
             &TranslationPanel::appendChunk);
+    connect(m_controller, &TranslationController::inferenceRouteChanged, this,
+            [this] { updateProviderDisplay(); });
     connect(m_controller, &TranslationController::translationFinished, this,
             &TranslationPanel::finishRequest);
     connect(m_controller, &TranslationController::requestFailed, this,
@@ -215,16 +206,6 @@ QString TranslationPanel::outputText() const {
 
 void TranslationPanel::setOutputText(const QString& text) {
     m_output->setPlainText(text);
-}
-
-QString TranslationPanel::contextText() const {
-    return m_context ? m_context->toPlainText() : QString();
-}
-
-void TranslationPanel::setContextText(const QString& text) {
-    if (m_context) {
-        m_context->setPlainText(text);
-    }
 }
 
 void TranslationPanel::populateLanguages() {
@@ -269,16 +250,26 @@ void TranslationPanel::updateProviderDisplay() {
     const bool defaultCustomName =
         !provider.openRouter &&
         (storedName.isEmpty() || storedName == QStringLiteral("Custom provider"));
-    const QString providerName =
-        provider.openRouter && storedName.isEmpty()
-            ? QStringLiteral("OpenRouter")
-            : (defaultCustomName ? tr("Custom provider") : storedName);
-    const QString model = provider.model.trimmed().isEmpty() ? tr("not selected")
-                                                              : provider.model.trimmed();
+    const QString providerName = provider.openRouter
+                                     ? QStringLiteral("OpenRouter")
+                                     : (defaultCustomName ? tr("Custom provider") : storedName);
+    const bool routeMatches = m_controller->inferenceRouteMatchesCurrentProvider();
+    const InferenceRoute route = routeMatches ? m_controller->inferenceRoute() : InferenceRoute{};
+    const QString actualProvider =
+        provider.openRouter && !route.provider.isEmpty()
+            ? tr("%1 via OpenRouter").arg(route.provider)
+            : providerName;
+    const QString actualModel =
+        !route.model.isEmpty()
+            ? route.model
+            : (routeMatches && m_controller->isBusy() ? tr("resolving…")
+                                                       : tr("not reported yet"));
     m_providerSummary->setText(
-        tr("Provider: %1 · Model: %2").arg(providerName, model));
+        tr("Provider: %1 · Actual model: %2").arg(actualProvider, actualModel));
     m_providerSummary->setToolTip(
-        tr("Endpoint: %1").arg(provider.chatEndpoint.toString(QUrl::FullyEncoded)));
+        tr("Requested model or route: %1\nEndpoint: %2")
+            .arg(provider.model.trimmed(),
+                 provider.chatEndpoint.toString(QUrl::FullyEncoded)));
 
     if (provider.openRouter && provider.zeroDataRetention) {
         m_privacy->setText(tr("Strict route: Zero Data Retention endpoints only"));
@@ -293,8 +284,7 @@ void TranslationPanel::requestTranslation() {
     if (!m_translateButton->isEnabled()) {
         return;
     }
-    m_controller->translate(m_input->toPlainText(), currentSourceCode(), currentTargetCode(),
-                            m_context ? m_context->toPlainText() : QString());
+    m_controller->translate(m_input->toPlainText(), currentSourceCode(), currentTargetCode());
 }
 
 void TranslationPanel::swapLanguages() {
@@ -314,6 +304,7 @@ void TranslationPanel::beginRequest() {
     m_output->clear();
     m_status->setText(tr("Connecting to the selected model…"));
     setBusy(true);
+    updateProviderDisplay();
 }
 
 void TranslationPanel::appendChunk(const QString& chunk) {
@@ -329,11 +320,13 @@ void TranslationPanel::finishRequest(const QString& result) {
     m_output->setPlainText(result);
     m_status->setText(tr("Translation complete."));
     setBusy(false);
+    updateProviderDisplay();
 }
 
 void TranslationPanel::showError(const QString& message) {
     m_status->setText(message);
     setBusy(false);
+    updateProviderDisplay();
 }
 
 void TranslationPanel::setBusy(bool busy) {
@@ -341,9 +334,6 @@ void TranslationPanel::setBusy(bool busy) {
     m_cancelButton->setVisible(busy);
     m_translateButton->setVisible(!busy);
     m_input->setReadOnly(busy);
-    if (m_context) {
-        m_context->setReadOnly(busy);
-    }
     updateControls();
 }
 
@@ -362,4 +352,4 @@ void TranslationPanel::selectCode(QComboBox* combo, const QString& code) {
     }
 }
 
-} // namespace translunix
+} // namespace verbuno

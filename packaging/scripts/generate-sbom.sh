@@ -8,21 +8,21 @@ printf '%s\n' \
   'SPDXVersion: SPDX-2.3' \
   'DataLicense: CC0-1.0' \
   'SPDXID: SPDXRef-DOCUMENT' \
-  "DocumentName: TranslUnix-$version" \
-  "DocumentNamespace: https://github.com/Trendorin/TranslUnix/releases/tag/v$version/spdx" \
+  "DocumentName: Verbuno-$version" \
+  "DocumentNamespace: https://github.com/Trendorin/Verbuno/releases/tag/v$version/spdx" \
   'Creator: Organization: Trendorin' \
   "Created: $created" \
   '' \
-  '##### Package: TranslUnix' \
+  '##### Package: Verbuno' \
   '' \
-  'PackageName: TranslUnix' \
-  'SPDXID: SPDXRef-Package-TranslUnix' \
+  'PackageName: Verbuno' \
+  'SPDXID: SPDXRef-Package-Verbuno' \
   "PackageVersion: $version" \
-  "PackageDownloadLocation: https://github.com/Trendorin/TranslUnix/releases/tag/v$version" \
+  "PackageDownloadLocation: https://github.com/Trendorin/Verbuno/releases/tag/v$version" \
   'FilesAnalyzed: false' \
   'PackageLicenseConcluded: GPL-3.0-or-later' \
   'PackageLicenseDeclared: GPL-3.0-or-later' \
   'PackageCopyrightText: Copyright 2026 Trendorin' \
-  'ExternalRef: PACKAGE-MANAGER purl pkg:github/Trendorin/TranslUnix' \
+  'ExternalRef: PACKAGE-MANAGER purl pkg:github/Trendorin/Verbuno' \
   '' \
-  'Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-Package-TranslUnix'
+  'Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-Package-Verbuno'

@@ -4,7 +4,7 @@
 #include <QLocale>
 #include <QTranslator>
 
-namespace translunix {
+namespace verbuno {
 
 InterfaceLanguageManager::InterfaceLanguageManager(QObject* parent)
     : QObject(parent) {
@@ -30,7 +30,7 @@ bool InterfaceLanguageManager::applyLanguage(const QString& languageCode) {
     if (normalized != QStringLiteral("en")) {
         candidate = std::make_unique<QTranslator>();
         const QString resource =
-            QStringLiteral(":/i18n/translunix_%1.qm").arg(normalized);
+            QStringLiteral(":/i18n/verbuno_%1.qm").arg(normalized);
         if (!candidate->load(resource)) {
             return false;
         }
@@ -77,4 +77,4 @@ QStringList InterfaceLanguageManager::supportedCodes() {
             QStringLiteral("de")};
 }
 
-} // namespace translunix
+} // namespace verbuno

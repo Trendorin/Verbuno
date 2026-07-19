@@ -1,4 +1,4 @@
-function(translunix_set_project_warnings target)
+function(verbuno_set_project_warnings target)
     if(MSVC)
         target_compile_options(${target} PRIVATE /W4 /permissive-)
     else()

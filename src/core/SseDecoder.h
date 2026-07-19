@@ -3,7 +3,7 @@
 #include <QByteArray>
 #include <QVector>
 
-namespace translunix {
+namespace verbuno {
 
 class SseDecoder final {
 public:
@@ -19,4 +19,4 @@ private:
     QByteArray m_eventData;
 };
 
-} // namespace translunix
+} // namespace verbuno

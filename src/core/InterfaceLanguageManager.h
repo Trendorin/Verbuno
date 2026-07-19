@@ -8,7 +8,7 @@
 
 class QTranslator;
 
-namespace translunix {
+namespace verbuno {
 
 class InterfaceLanguageManager final : public QObject {
     Q_OBJECT
@@ -32,4 +32,4 @@ private:
     std::unique_ptr<QTranslator> m_translator;
 };
 
-} // namespace translunix
+} // namespace verbuno

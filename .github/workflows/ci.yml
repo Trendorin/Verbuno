@@ -45,8 +45,8 @@ jobs:
           cmake -S . -B build -G Ninja
           -DCMAKE_BUILD_TYPE=RelWithDebInfo
           -DCMAKE_INSTALL_PREFIX=/usr
-          -DTRANSLUNIX_BUILD_TESTS=ON
-          -DTRANSLUNIX_REQUIRE_KEYCHAIN=ON
+          -DVERBUNO_BUILD_TESTS=ON
+          -DVERBUNO_REQUIRE_KEYCHAIN=ON
 
       - name: Build
         run: cmake --build build --parallel 2
@@ -56,8 +56,8 @@ jobs:
 
       - name: Validate desktop metadata
         run: |
-          desktop-file-validate data/io.github.trendorin.TranslUnix.desktop
-          appstreamcli validate --no-net data/io.github.trendorin.TranslUnix.metainfo.xml
+          desktop-file-validate data/io.github.trendorin.Verbuno.desktop
+          appstreamcli validate --no-net data/io.github.trendorin.Verbuno.metainfo.xml
 
       - name: Build and install Ubuntu packages
         run: |
@@ -72,12 +72,12 @@ jobs:
           dpkg-deb --info "${deb_file}"
           dpkg-deb --contents "${deb_file}"
           sudo apt-get install --no-install-recommends -y "${deb_file}"
-          dpkg-query --show --showformat='${Package} ${Version}\n' translunix
-          dpkg --verify translunix
-          ldd /usr/bin/translunix | tee /tmp/translunix-deb-ldd.txt
-          ! grep -q 'not found' /tmp/translunix-deb-ldd.txt
-          tar -tJf "${tree_file}" | tee /tmp/translunix-tree.txt
-          grep -Eq '(^|/)bin/translunix$' /tmp/translunix-tree.txt
+          dpkg-query --show --showformat='${Package} ${Version}\n' verbuno
+          dpkg --verify verbuno
+          ldd /usr/bin/verbuno | tee /tmp/verbuno-deb-ldd.txt
+          ! grep -q 'not found' /tmp/verbuno-deb-ldd.txt
+          tar -tJf "${tree_file}" | tee /tmp/verbuno-tree.txt
+          grep -Eq '(^|/)bin/verbuno$' /tmp/verbuno-tree.txt
 
   fedora-rpm:
     name: Fedora 44 RPM install test
@@ -100,12 +100,12 @@ jobs:
           cmake -S . -B build-fedora -G Ninja \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
             -DCMAKE_INSTALL_PREFIX=/usr \
-            -DTRANSLUNIX_BUILD_TESTS=ON \
-            -DTRANSLUNIX_REQUIRE_KEYCHAIN=ON
+            -DVERBUNO_BUILD_TESTS=ON \
+            -DVERBUNO_REQUIRE_KEYCHAIN=ON
           cmake --build build-fedora --parallel 2
           ctest --test-dir build-fedora --output-on-failure
-          desktop-file-validate data/io.github.trendorin.TranslUnix.desktop
-          appstreamcli validate --no-net data/io.github.trendorin.TranslUnix.metainfo.xml
+          desktop-file-validate data/io.github.trendorin.Verbuno.desktop
+          appstreamcli validate --no-net data/io.github.trendorin.Verbuno.metainfo.xml
 
       - name: Build and install RPM
         run: |
@@ -114,13 +114,13 @@ jobs:
           rpm_file="$(find package-output -maxdepth 1 -type f -name '*.rpm' -print -quit)"
           test -n "${rpm_file}"
           rpm -qpl "${rpm_file}"
-          rpm -qpR "${rpm_file}" | sort | tee /tmp/translunix-rpm-requires.txt
-          grep -q 'libqt6keychain\.so\.1' /tmp/translunix-rpm-requires.txt
+          rpm -qpR "${rpm_file}" | sort | tee /tmp/verbuno-rpm-requires.txt
+          grep -q 'libqt6keychain\.so\.1' /tmp/verbuno-rpm-requires.txt
           dnf install --setopt=install_weak_deps=False -y "${rpm_file}"
-          rpm -q translunix
-          rpm -V translunix
-          ldd /usr/bin/translunix | tee /tmp/translunix-rpm-ldd.txt
-          ! grep -q 'not found' /tmp/translunix-rpm-ldd.txt
+          rpm -q verbuno
+          rpm -V verbuno
+          ldd /usr/bin/verbuno | tee /tmp/verbuno-rpm-ldd.txt
+          ! grep -q 'not found' /tmp/verbuno-rpm-ldd.txt
 
   arch-package:
     name: Arch Linux package install test
@@ -145,35 +145,35 @@ jobs:
         run: |
           version="$(awk '$1 == "VERSION" { print $2; exit }' CMakeLists.txt)"
           test -n "${version}"
-          install -d -m 0755 /tmp/translunix-package
+          install -d -m 0755 /tmp/verbuno-package
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
-          git archive --format=tar --prefix="TranslUnix-${version}/" HEAD \
-            | xz -T0 -9 > "/tmp/translunix-package/TranslUnix-${version}-source.tar.xz"
-          source_hash="$(sha256sum "/tmp/translunix-package/TranslUnix-${version}-source.tar.xz" | cut -d' ' -f1)"
+          git archive --format=tar --prefix="Verbuno-${version}/" HEAD \
+            | xz -T0 -9 > "/tmp/verbuno-package/Verbuno-${version}-source.tar.xz"
+          source_hash="$(sha256sum "/tmp/verbuno-package/Verbuno-${version}-source.tar.xz" | cut -d' ' -f1)"
           sed -e "s/@VERSION@/${version}/g" -e "s/@SOURCE_SHA256@/${source_hash}/g" \
-            packaging/arch/PKGBUILD.in > /tmp/translunix-package/PKGBUILD
+            packaging/arch/PKGBUILD.in > /tmp/verbuno-package/PKGBUILD
           echo "VERSION=${version}" >> "$GITHUB_ENV"
 
       - name: Build package as an unprivileged user
         run: |
           useradd --create-home builder
-          chown -R builder:builder /tmp/translunix-package
+          chown -R builder:builder /tmp/verbuno-package
           runuser -u builder -- bash -lc \
-            'cd /tmp/translunix-package && LC_ALL=C makepkg --cleanbuild --noconfirm'
+            'cd /tmp/verbuno-package && LC_ALL=C makepkg --cleanbuild --noconfirm'
 
       - name: Verify and install Arch package
         run: |
-          package_file="/tmp/translunix-package/translunix-${VERSION}-1-x86_64.pkg.tar.zst"
+          package_file="/tmp/verbuno-package/verbuno-${VERSION}-1-x86_64.pkg.tar.zst"
           test -f "${package_file}"
-          test "$(find /tmp/translunix-package -maxdepth 1 -type f -name '*.pkg.tar.zst' | wc -l)" -eq 1
+          test "$(find /tmp/verbuno-package -maxdepth 1 -type f -name '*.pkg.tar.zst' | wc -l)" -eq 1
           pacman -Qip "${package_file}"
-          pacman -Qlp "${package_file}" | tee /tmp/translunix-package-files.txt
-          grep -q 'usr/bin/translunix$' /tmp/translunix-package-files.txt
+          pacman -Qlp "${package_file}" | tee /tmp/verbuno-package-files.txt
+          grep -q 'usr/bin/verbuno$' /tmp/verbuno-package-files.txt
           pacman -U --noconfirm "${package_file}"
-          pacman -Q translunix
-          pacman -Qkk translunix
-          ldd /usr/bin/translunix | tee /tmp/translunix-arch-ldd.txt
-          ! grep -q 'not found' /tmp/translunix-arch-ldd.txt
+          pacman -Q verbuno
+          pacman -Qkk verbuno
+          ldd /usr/bin/verbuno | tee /tmp/verbuno-arch-ldd.txt
+          ! grep -q 'not found' /tmp/verbuno-arch-ldd.txt
 
   sanitizers:
     name: ASan and UBSan
@@ -195,9 +195,9 @@ jobs:
         run: |
           cmake -S . -B build-asan -G Ninja \
             -DCMAKE_BUILD_TYPE=Debug \
-            -DTRANSLUNIX_BUILD_TESTS=ON \
-            -DTRANSLUNIX_ENABLE_SANITIZERS=ON \
-            -DTRANSLUNIX_REQUIRE_KEYCHAIN=ON
+            -DVERBUNO_BUILD_TESTS=ON \
+            -DVERBUNO_ENABLE_SANITIZERS=ON \
+            -DVERBUNO_REQUIRE_KEYCHAIN=ON
           cmake --build build-asan --parallel 2
 
       - name: Test

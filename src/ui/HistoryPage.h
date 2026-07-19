@@ -6,7 +6,7 @@ class QLabel;
 class QPlainTextEdit;
 class QTableWidget;
 
-namespace translunix {
+namespace verbuno {
 
 class TranslationController;
 
@@ -27,4 +27,4 @@ private:
     QLabel* m_emptyLabel = nullptr;
 };
 
-} // namespace translunix
+} // namespace verbuno

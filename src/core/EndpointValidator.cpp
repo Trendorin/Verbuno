@@ -3,11 +3,11 @@
 #include <QCoreApplication>
 #include <QHostAddress>
 
-namespace translunix {
+namespace verbuno {
 
 namespace {
 QString uiText(const char* source) {
-    return QCoreApplication::translate("translunix::EndpointValidator", source);
+    return QCoreApplication::translate("verbuno::EndpointValidator", source);
 }
 }
 
@@ -49,4 +49,4 @@ bool EndpointValidator::isLoopbackHost(const QString& host) {
     return address.setAddress(host) && address.isLoopback();
 }
 
-} // namespace translunix
+} // namespace verbuno

@@ -1,6 +1,6 @@
 #include "core/PromptBuilder.h"
 
-namespace translunix {
+namespace verbuno {
 
 QString PromptBuilder::systemPrompt(const TranslationRequest& request) {
     const QString source = request.sourceCode == QStringLiteral("auto")
@@ -11,7 +11,7 @@ QString PromptBuilder::systemPrompt(const TranslationRequest& request) {
         QStringLiteral("%1 [%2]").arg(request.targetName, request.targetCode.toLower());
 
     QString prompt = QStringLiteral(
-                         "You are TranslUnix, a professional translation engine. Translate the "
+                         "You are Verbuno, a professional translation engine. Translate the "
                          "user-provided text from %1 into %2.\n\n"
                          "Mandatory output rules:\n"
                          "- Return only the translation. Do not add headings, notes, explanations, "
@@ -31,10 +31,6 @@ QString PromptBuilder::systemPrompt(const TranslationRequest& request) {
         prompt += QStringLiteral(
             "\n- Preserve paragraphs, Markdown structure, list structure, and line breaks whenever "
             "the target language permits it.");
-    }
-    if (!request.context.trimmed().isEmpty()) {
-        prompt += QStringLiteral("\n\nContext for disambiguation only:\n%1")
-                      .arg(request.context.left(4000).trimmed());
     }
     if (!request.customInstruction.trimmed().isEmpty()) {
         prompt += QStringLiteral(
@@ -65,4 +61,4 @@ QString PromptBuilder::styleInstruction(TranslationStyle style) {
     }
 }
 
-} // namespace translunix
+} // namespace verbuno

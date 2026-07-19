@@ -1,10 +1,10 @@
 # Support
 
-Use [GitHub Issues](https://github.com/Trendorin/TranslUnix/issues) for reproducible bugs and focused feature requests.
+Use [GitHub Issues](https://github.com/Trendorin/Verbuno/issues) for reproducible bugs and focused feature requests.
 
 Before reporting a bug, include:
 
-- TranslUnix version and installation format;
+- Verbuno version and installation format;
 - distribution, desktop environment and X11/Wayland session;
 - whether a tray implementation is available;
 - provider type and model ID, without the API key;

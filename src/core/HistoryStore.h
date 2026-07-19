@@ -6,7 +6,7 @@
 #include <QString>
 #include <QVector>
 
-namespace translunix {
+namespace verbuno {
 
 class HistoryStore final : public QObject {
     Q_OBJECT
@@ -41,4 +41,4 @@ private:
     int m_retentionDays = 30;
 };
 
-} // namespace translunix
+} // namespace verbuno

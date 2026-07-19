@@ -1,6 +1,6 @@
 # Contributing
 
-Contributions that keep TranslUnix small, native and explicit about its privacy boundary are welcome.
+Contributions that keep Verbuno small, native and explicit about its privacy boundary are welcome.
 
 ## Before opening a change
 

@@ -1,6 +1,6 @@
 # Third-party notices
 
-TranslUnix links to the following system-provided libraries:
+Verbuno links to the following system-provided libraries:
 
 | Component | Purpose | License |
 |---|---|---|
