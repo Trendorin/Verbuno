@@ -1,21 +1,28 @@
 #include "core/EndpointValidator.h"
 
+#include <QCoreApplication>
 #include <QHostAddress>
 
 namespace translunix {
 
+namespace {
+QString uiText(const char* source) {
+    return QCoreApplication::translate("translunix::EndpointValidator", source);
+}
+}
+
 EndpointValidation EndpointValidator::validate(const QUrl& endpoint) {
     if (!endpoint.isValid() || endpoint.isEmpty()) {
-        return {false, QStringLiteral("The provider endpoint is not a valid URL.")};
+        return {false, uiText("The provider endpoint is not a valid URL.")};
     }
     if (!endpoint.userInfo().isEmpty()) {
-        return {false, QStringLiteral("Credentials must not be embedded in the endpoint URL.")};
+        return {false, uiText("Credentials must not be embedded in the endpoint URL.")};
     }
     if (!endpoint.fragment().isEmpty() || endpoint.hasQuery()) {
-        return {false, QStringLiteral("The endpoint must not contain a query or fragment.")};
+        return {false, uiText("The endpoint must not contain a query or fragment.")};
     }
     if (endpoint.host().trimmed().isEmpty()) {
-        return {false, QStringLiteral("The provider endpoint has no host.")};
+        return {false, uiText("The provider endpoint has no host.")};
     }
 
     const QString scheme = endpoint.scheme().toLower();
@@ -25,8 +32,7 @@ EndpointValidation EndpointValidator::validate(const QUrl& endpoint) {
     if (scheme == QStringLiteral("http") && isLoopbackHost(endpoint.host())) {
         return {true, {}};
     }
-    return {false,
-            QStringLiteral("Use HTTPS. Plain HTTP is allowed only for a loopback provider.")};
+    return {false, uiText("Use HTTPS. Plain HTTP is allowed only for a loopback provider.")};
 }
 
 bool EndpointValidator::isOpenRouter(const QUrl& endpoint) {

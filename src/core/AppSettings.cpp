@@ -1,5 +1,7 @@
 #include "core/AppSettings.h"
 
+#include "core/InterfaceLanguageManager.h"
+
 #include <algorithm>
 
 namespace translunix {
@@ -143,6 +145,21 @@ bool AppSettings::closeToTray() const {
 
 void AppSettings::setCloseToTray(bool enabled) {
     m_settings.setValue(QStringLiteral("general/closeToTray"), enabled);
+    sync();
+}
+
+QString AppSettings::interfaceLanguage() const {
+    const QString stored =
+        m_settings
+            .value(QStringLiteral("general/interfaceLanguage"),
+                   InterfaceLanguageManager::systemDefault())
+            .toString();
+    return InterfaceLanguageManager::normalize(stored);
+}
+
+void AppSettings::setInterfaceLanguage(const QString& languageCode) {
+    m_settings.setValue(QStringLiteral("general/interfaceLanguage"),
+                        InterfaceLanguageManager::normalize(languageCode));
     sync();
 }
 

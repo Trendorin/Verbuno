@@ -44,6 +44,9 @@ public:
     [[nodiscard]] bool closeToTray() const;
     void setCloseToTray(bool enabled);
 
+    [[nodiscard]] QString interfaceLanguage() const;
+    void setInterfaceLanguage(const QString& languageCode);
+
     [[nodiscard]] bool rememberApiKey() const;
     void setRememberApiKey(bool enabled);
 

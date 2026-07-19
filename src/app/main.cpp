@@ -1,11 +1,10 @@
 #include "app/SingleInstance.h"
 #include "app/TrayController.h"
+#include "core/InterfaceLanguageManager.h"
 
 #include <QApplication>
 #include <QIcon>
-#include <QLocale>
 #include <QTextStream>
-#include <QTranslator>
 
 int main(int argc, char* argv[]) {
     QApplication application(argc, argv);
@@ -28,11 +27,19 @@ int main(int argc, char* argv[]) {
             << "Usage: translunix [--toggle|--show|--history|--settings|--quit|--version]\n";
         return 0;
     }
-
-    QTranslator translator;
-    if (QLocale::system().language() == QLocale::Russian &&
-        translator.load(QStringLiteral(":/i18n/translunix_ru.qm"))) {
-        application.installTranslator(&translator);
+    if (arguments.contains(QStringLiteral("--check-translations"))) {
+        translunix::InterfaceLanguageManager languageManager;
+        const QString source = QStringLiteral("Settings");
+        for (const QString& code : {QStringLiteral("ru"), QStringLiteral("uk"),
+                                    QStringLiteral("de")}) {
+            if (!languageManager.applyLanguage(code) ||
+                QCoreApplication::translate("translunix::MainWindow", "Settings") == source) {
+                QTextStream(stderr) << "Translation catalog check failed for " << code << '\n';
+                return 1;
+            }
+        }
+        QTextStream(stdout) << "Translation catalogs: OK\n";
+        return 0;
     }
 
     translunix::SingleInstance instance(QStringLiteral(TRANSLUNIX_APP_ID), arguments);

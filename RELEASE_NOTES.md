@@ -1,16 +1,15 @@
-# TranslUnix 0.1.0
+# TranslUnix 0.1.1
 
-The first native Linux release provides a fast tray-first translation workflow without an Electron runtime or project-operated backend.
+This release makes TranslUnix behave like a conventional native Qt desktop application and adds complete runtime interface localization.
 
 ## Highlights
 
-- compact animated tray popup and complete desktop window;
-- OpenRouter streaming and custom OpenAI-compatible endpoints;
-- roughly 190 language variants, automatic detection, context and translation styles;
-- `openrouter/free` plus live filtering of the current zero-price model catalog;
-- secure session or QtKeychain credential storage with no plaintext fallback;
-- data-collection-deny routing by default and optional strict ZDR;
-- local history off by default and immediately clearable when enabled.
+- standard system-decorated main window with native minimize, maximize, close and resize behavior;
+- tray click and `translunix --toggle` operate on that normal window without a frameless popup;
+- active provider and exact model ID remain visible in the toolbar and translation workspace;
+- English, Russian, Ukrainian and German can be selected under **Settings → General**;
+- the interface, tray menu, privacy guidance, validation messages and provider errors update without restarting;
+- translator input is preserved while rebuilding the interface after a language change.
 
 ## Release files
 

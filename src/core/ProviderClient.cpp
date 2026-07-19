@@ -3,6 +3,7 @@
 #include "core/EndpointValidator.h"
 #include "core/PromptBuilder.h"
 
+#include <QCoreApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -17,6 +18,10 @@ namespace translunix {
 
 namespace {
 constexpr qsizetype kMaximumBufferedResponse = 4 * 1024 * 1024;
+
+QString uiText(const char* source) {
+    return QCoreApplication::translate("translunix::ProviderClient", source);
+}
 
 bool isZeroPrice(const QJsonValue& value, bool missingIsZero = false) {
     if (value.isUndefined() || value.isNull()) {
@@ -42,15 +47,15 @@ void ProviderClient::translate(const TranslationRequest& request, const QString&
         return;
     }
     if (apiKey.trimmed().isEmpty()) {
-        emit requestFailed(QStringLiteral("No API key is available for the selected provider."));
+        emit requestFailed(uiText("No API key is available for the selected provider."));
         return;
     }
     if (request.input.trimmed().isEmpty()) {
-        emit requestFailed(QStringLiteral("Enter text to translate."));
+        emit requestFailed(uiText("Enter text to translate."));
         return;
     }
     if (request.provider.model.trimmed().isEmpty()) {
-        emit requestFailed(QStringLiteral("Choose or enter a model identifier."));
+        emit requestFailed(uiText("Choose or enter a model identifier."));
         return;
     }
 
@@ -111,7 +116,7 @@ void ProviderClient::translate(const TranslationRequest& request, const QString&
 void ProviderClient::fetchFreeModels(const ProviderSettings& provider, const QString& apiKey) {
     if (!provider.openRouter || !EndpointValidator::isOpenRouter(provider.modelsEndpoint)) {
         emit modelsFailed(
-            QStringLiteral("Automatic model discovery is available for OpenRouter profiles only."));
+            uiText("Automatic model discovery is available for OpenRouter profiles only."));
         return;
     }
     const EndpointValidation validation = EndpointValidator::validate(provider.modelsEndpoint);
@@ -198,7 +203,7 @@ void ProviderClient::handleTranslationFinished(QNetworkReply* reply) {
 
     if (m_cancelled) {
         if (!m_failureEmitted) {
-            emit requestFailed(QStringLiteral("Translation cancelled."));
+            emit requestFailed(uiText("Translation cancelled."));
         }
         resetTranslationState();
         return;
@@ -208,7 +213,7 @@ void ProviderClient::handleTranslationFinished(QNetworkReply* reply) {
         return;
     }
     if (redirected) {
-        failTranslation(QStringLiteral(
+        failTranslation(uiText(
             "The provider redirected the request. Redirects are refused to protect the API key."));
         resetTranslationState();
         return;
@@ -224,8 +229,8 @@ void ProviderClient::handleTranslationFinished(QNetworkReply* reply) {
     }
     if (m_accumulated.trimmed().isEmpty()) {
         failTranslation(m_receivedDone
-                            ? QStringLiteral("The model returned an empty translation.")
-                            : QStringLiteral("The provider returned an unsupported response."));
+                            ? uiText("The model returned an empty translation.")
+                            : uiText("The provider returned an unsupported response."));
         resetTranslationState();
         return;
     }
@@ -243,7 +248,7 @@ void ProviderClient::handleModelsFinished(QNetworkReply* reply) {
     const QByteArray payload = reply->readAll();
     const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     if (status >= 300 && status < 400) {
-        emit modelsFailed(QStringLiteral("The model catalog redirected unexpectedly."));
+        emit modelsFailed(uiText("The model catalog redirected unexpectedly."));
         return;
     }
     if (reply->error() != QNetworkReply::NoError || status < 200 || status >= 300) {
@@ -273,7 +278,7 @@ void ProviderClient::processSseEvent(const QByteArray& event, QNetworkReply* rep
     }
     const QJsonObject root = document.object();
     if (root.contains(QStringLiteral("error"))) {
-        failTranslation(extractError(event, QStringLiteral("The provider reported a stream error.")),
+        failTranslation(extractError(event, uiText("The provider reported a stream error.")),
                         reply);
         return;
     }
@@ -353,7 +358,7 @@ QString ProviderClient::extractError(const QByteArray& payload, const QString& f
             return sanitizedMessage(errorValue.toString());
         }
     }
-    return sanitizedMessage(fallback.isEmpty() ? QStringLiteral("The provider request failed.")
+    return sanitizedMessage(fallback.isEmpty() ? uiText("The provider request failed.")
                                                : fallback);
 }
 
@@ -370,7 +375,7 @@ QVector<ModelInfo> ProviderClient::parseFreeModels(const QByteArray& payload, QS
     QJsonParseError parseError;
     const QJsonDocument document = QJsonDocument::fromJson(payload, &parseError);
     if (parseError.error != QJsonParseError::NoError || !document.isObject()) {
-        *error = QStringLiteral("The OpenRouter model catalog is not valid JSON.");
+        *error = uiText("The OpenRouter model catalog is not valid JSON.");
         return {};
     }
 
@@ -420,7 +425,7 @@ QVector<ModelInfo> ProviderClient::parseFreeModels(const QByteArray& payload, QS
         return QString::localeAwareCompare(left.name, right.name) < 0;
     });
     if (result.isEmpty()) {
-        *error = QStringLiteral("No free models were reported by OpenRouter.");
+        *error = uiText("No free models were reported by OpenRouter.");
     }
     return result;
 }

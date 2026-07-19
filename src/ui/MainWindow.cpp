@@ -10,11 +10,13 @@
 #include <QCloseEvent>
 #include <QHBoxLayout>
 #include <QIcon>
+#include <QLabel>
 #include <QListWidget>
 #include <QMenu>
 #include <QMenuBar>
 #include <QStackedWidget>
 #include <QStatusBar>
+#include <QSizePolicy>
 #include <QToolBar>
 
 namespace translunix {
@@ -24,6 +26,9 @@ MainWindow::MainWindow(TranslationController* controller,
                        QWidget* parent)
     : QMainWindow(parent)
     , m_settings(settings) {
+    setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowSystemMenuHint |
+                   Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint |
+                   Qt::WindowCloseButtonHint);
     setWindowTitle(QStringLiteral("TranslUnix"));
     setWindowIcon(QIcon(QStringLiteral(":/icons/app.svg")));
     setMinimumSize(820, 620);
@@ -43,7 +48,7 @@ MainWindow::MainWindow(TranslationController* controller,
     layout->addWidget(m_navigation);
 
     m_pages = new QStackedWidget(central);
-    m_translator = new TranslationPanel(controller, settings, false, m_pages);
+    m_translator = new TranslationPanel(controller, settings, m_pages);
     m_history = new HistoryPage(controller, m_pages);
     m_pages->addWidget(m_translator);
     m_pages->addWidget(m_history);
@@ -65,6 +70,14 @@ MainWindow::MainWindow(TranslationController* controller,
     auto* toolbar = addToolBar(tr("Main"));
     toolbar->setMovable(false);
     toolbar->addAction(settingsAction);
+    toolbar->addSeparator();
+    m_providerIndicator = new QLabel(toolbar);
+    m_providerIndicator->setTextFormat(Qt::PlainText);
+    m_providerIndicator->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    m_providerIndicator->setMinimumWidth(240);
+    m_providerIndicator->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    toolbar->addWidget(m_providerIndicator);
+    updateProviderIndicator();
 
     statusBar()->showMessage(
         tr("No telemetry · text is sent only to the configured provider endpoint"));
@@ -77,8 +90,7 @@ MainWindow::MainWindow(TranslationController* controller,
         dialog.exec();
     });
     connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
-    connect(m_translator, &TranslationPanel::settingsRequested, this,
-            &MainWindow::settingsRequested);
+    connect(m_settings, &AppSettings::changed, this, &MainWindow::updateProviderIndicator);
 }
 
 void MainWindow::setTrayAvailable(bool available) {
@@ -87,7 +99,11 @@ void MainWindow::setTrayAvailable(bool available) {
 
 void MainWindow::showTranslator() {
     m_navigation->setCurrentRow(0);
-    show();
+    if (isMinimized()) {
+        showNormal();
+    } else {
+        show();
+    }
     raise();
     activateWindow();
     m_translator->focusInput();
@@ -95,9 +111,59 @@ void MainWindow::showTranslator() {
 
 void MainWindow::showHistory() {
     m_navigation->setCurrentRow(1);
-    show();
+    if (isMinimized()) {
+        showNormal();
+    } else {
+        show();
+    }
     raise();
     activateWindow();
+}
+
+bool MainWindow::isShowingHistory() const {
+    return m_navigation->currentRow() == 1;
+}
+
+QString MainWindow::translatorInput() const {
+    return m_translator->inputText();
+}
+
+void MainWindow::setTranslatorInput(const QString& text) {
+    m_translator->setInputText(text);
+}
+
+QString MainWindow::translatorOutput() const {
+    return m_translator->outputText();
+}
+
+void MainWindow::setTranslatorOutput(const QString& text) {
+    m_translator->setOutputText(text);
+}
+
+QString MainWindow::translatorContext() const {
+    return m_translator->contextText();
+}
+
+void MainWindow::setTranslatorContext(const QString& text) {
+    m_translator->setContextText(text);
+}
+
+void MainWindow::updateProviderIndicator() {
+    const ProviderSettings provider = m_settings->provider();
+    const QString storedName = provider.displayName.trimmed();
+    const bool defaultCustomName =
+        !provider.openRouter &&
+        (storedName.isEmpty() || storedName == QStringLiteral("Custom provider"));
+    const QString providerName =
+        provider.openRouter && storedName.isEmpty()
+            ? QStringLiteral("OpenRouter")
+            : (defaultCustomName ? tr("Custom provider") : storedName);
+    const QString model = provider.model.trimmed().isEmpty() ? tr("not selected")
+                                                              : provider.model.trimmed();
+    m_providerIndicator->setText(
+        tr("Provider: %1 · Model: %2").arg(providerName, model));
+    m_providerIndicator->setToolTip(
+        tr("Endpoint: %1").arg(provider.chatEndpoint.toString(QUrl::FullyEncoded)));
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {

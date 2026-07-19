@@ -32,8 +32,12 @@ SettingsDialog::SettingsDialog(AppSettings* settings,
     : QDialog(parent)
     , m_settings(settings)
     , m_controller(controller) {
+    setWindowFlags(Qt::Dialog | Qt::WindowTitleHint | Qt::WindowSystemMenuHint |
+                   Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint |
+                   Qt::WindowCloseButtonHint);
     setWindowTitle(tr("TranslUnix Settings"));
     setMinimumSize(720, 610);
+    resize(780, 680);
 
     auto* root = new QVBoxLayout(this);
     root->setContentsMargins(16, 16, 16, 16);
@@ -57,6 +61,9 @@ SettingsDialog::SettingsDialog(AppSettings* settings,
                 loadSettings();
                 m_providerStatus->setText(tr("OpenRouter defaults restored."));
             });
+    buttons->button(QDialogButtonBox::Save)->setText(tr("Save"));
+    buttons->button(QDialogButtonBox::Cancel)->setText(tr("Cancel"));
+    buttons->button(QDialogButtonBox::RestoreDefaults)->setText(tr("Restore defaults"));
     root->addWidget(buttons);
 
     connect(m_controller, &TranslationController::modelsLoaded, this,
@@ -94,6 +101,7 @@ QWidget* SettingsDialog::createProviderPage() {
     m_providerType->addItem(QStringLiteral("OpenRouter"), true);
     m_providerType->addItem(tr("OpenAI-compatible endpoint"), false);
     m_providerName = new QLineEdit(providerBox);
+    m_providerName->setPlaceholderText(tr("Custom provider"));
     m_endpoint = new QLineEdit(providerBox);
     m_endpoint->setPlaceholderText(QStringLiteral("https://provider.example/v1/chat/completions"));
     m_model = new QComboBox(providerBox);
@@ -276,6 +284,20 @@ QWidget* SettingsDialog::createGeneralPage() {
     root->setContentsMargins(14, 14, 14, 14);
     root->setSpacing(14);
 
+    auto* languageForm = new QFormLayout;
+    m_interfaceLanguage = new QComboBox(page);
+    m_interfaceLanguage->addItem(QStringLiteral("English"), QStringLiteral("en"));
+    m_interfaceLanguage->addItem(QStringLiteral("Русский"), QStringLiteral("ru"));
+    m_interfaceLanguage->addItem(QStringLiteral("Українська"), QStringLiteral("uk"));
+    m_interfaceLanguage->addItem(QStringLiteral("Deutsch"), QStringLiteral("de"));
+    languageForm->addRow(tr("Interface language"), m_interfaceLanguage);
+    root->addLayout(languageForm);
+
+    auto* languageNote =
+        new QLabel(tr("The interface language changes immediately after saving."), page);
+    languageNote->setWordWrap(true);
+    root->addWidget(languageNote);
+
     m_startInTray = new QCheckBox(tr("Start in the system tray"), page);
     m_closeToTray = new QCheckBox(tr("Closing the main window keeps TranslUnix in the tray"), page);
     root->addWidget(m_startInTray);
@@ -303,7 +325,10 @@ QWidget* SettingsDialog::createGeneralPage() {
 void SettingsDialog::loadSettings() {
     const ProviderSettings provider = m_settings->provider();
     m_providerType->setCurrentIndex(provider.openRouter ? 0 : 1);
-    m_providerName->setText(provider.displayName);
+    m_providerName->setText(!provider.openRouter &&
+                                    provider.displayName == QStringLiteral("Custom provider")
+                                ? QString()
+                                : provider.displayName);
     m_endpoint->setText(provider.chatEndpoint.toString(QUrl::FullyEncoded));
     int modelIndex = m_model->findData(provider.model);
     if (modelIndex < 0) {
@@ -330,6 +355,9 @@ void SettingsDialog::loadSettings() {
     m_retentionDays->setValue(m_settings->historyRetentionDays());
     m_startInTray->setChecked(m_settings->startInTray());
     m_closeToTray->setChecked(m_settings->closeToTray());
+    const int languageIndex =
+        m_interfaceLanguage->findData(m_settings->interfaceLanguage());
+    m_interfaceLanguage->setCurrentIndex(languageIndex >= 0 ? languageIndex : 0);
     updateProviderControls();
 }
 
@@ -384,10 +412,17 @@ void SettingsDialog::saveAndClose() {
     m_settings->setHistoryRetentionDays(m_retentionDays->value());
     m_settings->setStartInTray(m_startInTray->isChecked());
     m_settings->setCloseToTray(m_closeToTray->isChecked());
+    const QString previousLanguage = m_settings->interfaceLanguage();
+    const QString selectedLanguage = m_interfaceLanguage->currentData().toString();
+    m_settings->setInterfaceLanguage(selectedLanguage);
     if (!m_apiKey->text().trimmed().isEmpty()) {
         m_controller->saveApiKey(m_apiKey->text(), m_rememberKey->isChecked());
     }
+    const bool languageChanged = previousLanguage != selectedLanguage;
     accept();
+    if (languageChanged) {
+        emit interfaceLanguageChanged(selectedLanguage);
+    }
 }
 
 void SettingsDialog::updateProviderControls() {

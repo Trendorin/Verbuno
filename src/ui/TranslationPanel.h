@@ -19,21 +19,21 @@ class TranslationPanel final : public QWidget {
 public:
     TranslationPanel(TranslationController* controller,
                      AppSettings* settings,
-                     bool compact,
                      QWidget* parent = nullptr);
 
     void focusInput();
     [[nodiscard]] QString inputText() const;
     void setInputText(const QString& text);
-
-signals:
-    void settingsRequested();
-    void fullWindowRequested();
+    [[nodiscard]] QString outputText() const;
+    void setOutputText(const QString& text);
+    [[nodiscard]] QString contextText() const;
+    void setContextText(const QString& text);
 
 private:
     void populateLanguages();
     void updateCounter();
     void updateControls();
+    void updateProviderDisplay();
     void requestTranslation();
     void swapLanguages();
     void beginRequest();
@@ -47,7 +47,6 @@ private:
 
     TranslationController* m_controller;
     AppSettings* m_settings;
-    bool m_compact;
     bool m_busy = false;
 
     QComboBox* m_sourceCombo = nullptr;
@@ -58,6 +57,7 @@ private:
     QPlainTextEdit* m_context = nullptr;
     QLabel* m_counter = nullptr;
     QLabel* m_status = nullptr;
+    QLabel* m_providerSummary = nullptr;
     QLabel* m_privacy = nullptr;
     QPushButton* m_translateButton = nullptr;
     QPushButton* m_cancelButton = nullptr;

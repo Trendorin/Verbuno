@@ -75,7 +75,7 @@ void TranslationController::translate(const QString& input,
                                       const QString& targetCode,
                                       const QString& context) {
     if (isBusy() || m_secretPurpose != SecretPurpose::None) {
-        emit requestFailed(QStringLiteral("A provider request is already running."));
+        emit requestFailed(tr("A provider request is already running."));
         return;
     }
     QString error;
@@ -98,7 +98,7 @@ void TranslationController::cancel() {
 void TranslationController::saveApiKey(const QString& apiKey, bool persist) {
     const QString normalized = apiKey.trimmed();
     if (normalized.size() < 8) {
-        emit apiKeyStored(false, QStringLiteral("The API key is unexpectedly short."));
+        emit apiKeyStored(false, tr("The API key is unexpectedly short."));
         return;
     }
     m_secretStore->storeSecret(credentialAccount(), normalized, persist);
@@ -110,7 +110,7 @@ void TranslationController::clearApiKey() {
 
 void TranslationController::refreshFreeModels() {
     if (isBusy() || m_secretPurpose != SecretPurpose::None) {
-        emit modelsFailed(QStringLiteral("Wait for the current provider request to finish."));
+        emit modelsFailed(tr("Wait for the current provider request to finish."));
         return;
     }
     m_secretPurpose = SecretPurpose::Models;
@@ -159,7 +159,7 @@ void TranslationController::handleSecretRead(const QString& account,
     }
     if (secret.isEmpty()) {
         m_pendingRequest.reset();
-        emit requestFailed(QStringLiteral("Add an API key in Settings before translating."));
+        emit requestFailed(tr("Add an API key in Settings before translating."));
         return;
     }
     if (!m_pendingRequest.has_value()) {
@@ -178,16 +178,16 @@ TranslationController::buildRequest(const QString& input,
                                     const QString& context,
                                     QString* error) const {
     if (input.trimmed().isEmpty()) {
-        *error = QStringLiteral("Enter text to translate.");
+        *error = tr("Enter text to translate.");
         return std::nullopt;
     }
     if (input.size() > m_settings->maximumInputCharacters()) {
-        *error = QStringLiteral("The text exceeds the configured input limit.");
+        *error = tr("The text exceeds the configured input limit.");
         return std::nullopt;
     }
     const std::optional<Language> target = LanguageCatalog::byCode(targetCode);
     if (!target.has_value()) {
-        *error = QStringLiteral("Choose a valid target language.");
+        *error = tr("Choose a valid target language.");
         return std::nullopt;
     }
 
@@ -195,11 +195,11 @@ TranslationController::buildRequest(const QString& input,
     if (sourceCode != QStringLiteral("auto")) {
         const std::optional<Language> source = LanguageCatalog::byCode(sourceCode);
         if (!source.has_value()) {
-            *error = QStringLiteral("Choose a valid source language.");
+            *error = tr("Choose a valid source language.");
             return std::nullopt;
         }
         if (source->code.compare(target->code, Qt::CaseInsensitive) == 0) {
-            *error = QStringLiteral("Source and target languages must be different.");
+            *error = tr("Source and target languages must be different.");
             return std::nullopt;
         }
         sourceName = source->name;

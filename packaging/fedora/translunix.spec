@@ -1,5 +1,5 @@
 Name:           translunix
-Version:        0.1.0
+Version:        0.1.1
 Release:        1%{?dist}
 Summary:        Native Linux AI translation client
 License:        GPL-3.0-or-later
@@ -56,5 +56,8 @@ OpenRouter or OpenAI-compatible endpoint without application telemetry.
 %{_datadir}/metainfo/io.github.trendorin.TranslUnix.metainfo.xml
 
 %changelog
+* Sun Jul 19 2026 Trendorin - 0.1.1-1
+- Use a standard native window and add runtime interface languages
+
 * Sun Jul 19 2026 Trendorin - 0.1.0-1
 - Initial native Linux release
