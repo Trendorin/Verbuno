@@ -13,6 +13,7 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QShortcut>
+#include <QSizePolicy>
 #include <QTextCursor>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -21,16 +22,23 @@ namespace translunix {
 
 TranslationPanel::TranslationPanel(TranslationController* controller,
                                    AppSettings* settings,
-                                   bool compact,
                                    QWidget* parent)
     : QWidget(parent)
     , m_controller(controller)
-    , m_settings(settings)
-    , m_compact(compact) {
+    , m_settings(settings) {
     auto* root = new QVBoxLayout(this);
-    root->setContentsMargins(compact ? 12 : 18, compact ? 8 : 18, compact ? 12 : 18,
-                             compact ? 12 : 18);
-    root->setSpacing(compact ? 8 : 12);
+    root->setContentsMargins(18, 18, 18, 18);
+    root->setSpacing(12);
+
+    m_providerSummary = new QLabel(this);
+    m_providerSummary->setTextFormat(Qt::PlainText);
+    m_providerSummary->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    m_providerSummary->setWordWrap(true);
+    m_providerSummary->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
+    QFont providerFont = m_providerSummary->font();
+    providerFont.setBold(true);
+    m_providerSummary->setFont(providerFont);
+    root->addWidget(m_providerSummary);
 
     auto* languageRow = new QHBoxLayout;
     languageRow->setSpacing(8);
@@ -51,24 +59,22 @@ TranslationPanel::TranslationPanel(TranslationController* controller,
     languageRow->addWidget(m_targetCombo, 1);
     root->addLayout(languageRow);
 
-    if (!compact) {
-        auto* optionRow = new QHBoxLayout;
-        auto* styleLabel = new QLabel(tr("Style"), this);
-        m_styleCombo = new QComboBox(this);
-        m_styleCombo->addItem(tr("Natural"), static_cast<int>(TranslationStyle::Natural));
-        m_styleCombo->addItem(tr("Formal"), static_cast<int>(TranslationStyle::Formal));
-        m_styleCombo->addItem(tr("Literal"), static_cast<int>(TranslationStyle::Literal));
-        m_styleCombo->addItem(tr("Technical"), static_cast<int>(TranslationStyle::Technical));
-        m_styleCombo->addItem(tr("Casual"), static_cast<int>(TranslationStyle::Casual));
-        const int styleIndex = m_styleCombo->findData(static_cast<int>(m_settings->translationStyle()));
-        if (styleIndex >= 0) {
-            m_styleCombo->setCurrentIndex(styleIndex);
-        }
-        optionRow->addWidget(styleLabel);
-        optionRow->addWidget(m_styleCombo);
-        optionRow->addStretch();
-        root->addLayout(optionRow);
+    auto* optionRow = new QHBoxLayout;
+    auto* styleLabel = new QLabel(tr("Style"), this);
+    m_styleCombo = new QComboBox(this);
+    m_styleCombo->addItem(tr("Natural"), static_cast<int>(TranslationStyle::Natural));
+    m_styleCombo->addItem(tr("Formal"), static_cast<int>(TranslationStyle::Formal));
+    m_styleCombo->addItem(tr("Literal"), static_cast<int>(TranslationStyle::Literal));
+    m_styleCombo->addItem(tr("Technical"), static_cast<int>(TranslationStyle::Technical));
+    m_styleCombo->addItem(tr("Casual"), static_cast<int>(TranslationStyle::Casual));
+    const int styleIndex = m_styleCombo->findData(static_cast<int>(m_settings->translationStyle()));
+    if (styleIndex >= 0) {
+        m_styleCombo->setCurrentIndex(styleIndex);
     }
+    optionRow->addWidget(styleLabel);
+    optionRow->addWidget(m_styleCombo);
+    optionRow->addStretch();
+    root->addLayout(optionRow);
 
     auto* inputHeader = new QHBoxLayout;
     inputHeader->addWidget(new QLabel(tr("Text"), this));
@@ -79,23 +85,21 @@ TranslationPanel::TranslationPanel(TranslationController* controller,
 
     m_input = new QPlainTextEdit(this);
     m_input->setPlaceholderText(tr("Enter or paste text to translate"));
-    m_input->setMinimumHeight(compact ? 118 : 190);
+    m_input->setMinimumHeight(190);
     root->addWidget(m_input, 1);
 
-    if (!compact) {
-        auto* contextLabel = new QLabel(tr("Optional context"), this);
-        m_context = new QPlainTextEdit(this);
-        m_context->setPlaceholderText(
-            tr("Domain, audience, terminology, or surrounding context for disambiguation"));
-        m_context->setMaximumHeight(86);
-        root->addWidget(contextLabel);
-        root->addWidget(m_context);
-    }
+    auto* contextLabel = new QLabel(tr("Optional context"), this);
+    m_context = new QPlainTextEdit(this);
+    m_context->setPlaceholderText(
+        tr("Domain, audience, terminology, or surrounding context for disambiguation"));
+    m_context->setMaximumHeight(86);
+    root->addWidget(contextLabel);
+    root->addWidget(m_context);
 
     auto* actionRow = new QHBoxLayout;
     auto* clearButton = new QPushButton(tr("Clear"), this);
     m_translateButton = new QPushButton(tr("Translate"), this);
-    m_translateButton->setDefault(!compact);
+    m_translateButton->setDefault(true);
     m_cancelButton = new QPushButton(tr("Cancel"), this);
     m_cancelButton->setVisible(false);
     actionRow->addWidget(clearButton);
@@ -114,7 +118,7 @@ TranslationPanel::TranslationPanel(TranslationController* controller,
     m_output = new QPlainTextEdit(this);
     m_output->setReadOnly(true);
     m_output->setPlaceholderText(tr("The streamed translation will appear here"));
-    m_output->setMinimumHeight(compact ? 112 : 190);
+    m_output->setMinimumHeight(190);
     root->addWidget(m_output, 1);
 
     m_status = new QLabel(this);
@@ -122,21 +126,14 @@ TranslationPanel::TranslationPanel(TranslationController* controller,
     m_status->setWordWrap(true);
     root->addWidget(m_status);
 
-    const ProviderSettings provider = m_settings->provider();
     m_privacy = new QLabel(this);
     m_privacy->setWordWrap(true);
-    if (provider.openRouter && provider.zeroDataRetention) {
-        m_privacy->setText(tr("Strict route: Zero Data Retention endpoints only"));
-    } else if (provider.openRouter && provider.denyDataCollection) {
-        m_privacy->setText(tr("Private route: providers that collect prompts are excluded"));
-    } else {
-        m_privacy->setText(tr("Provider policy applies; review it before sending sensitive text"));
-    }
     root->addWidget(m_privacy);
 
     populateLanguages();
     updateCounter();
     updateControls();
+    updateProviderDisplay();
 
     connect(m_input, &QPlainTextEdit::textChanged, this, [this] {
         updateCounter();
@@ -189,6 +186,15 @@ TranslationPanel::TranslationPanel(TranslationController* controller,
             &TranslationPanel::finishRequest);
     connect(m_controller, &TranslationController::requestFailed, this,
             &TranslationPanel::showError);
+    connect(m_settings, &AppSettings::changed, this, [this] {
+        updateCounter();
+        updateControls();
+        updateProviderDisplay();
+    });
+    if (m_controller->isBusy()) {
+        m_status->setText(tr("Connecting to the selected model…"));
+        setBusy(true);
+    }
 }
 
 void TranslationPanel::focusInput() {
@@ -201,6 +207,24 @@ QString TranslationPanel::inputText() const {
 
 void TranslationPanel::setInputText(const QString& text) {
     m_input->setPlainText(text);
+}
+
+QString TranslationPanel::outputText() const {
+    return m_output->toPlainText();
+}
+
+void TranslationPanel::setOutputText(const QString& text) {
+    m_output->setPlainText(text);
+}
+
+QString TranslationPanel::contextText() const {
+    return m_context ? m_context->toPlainText() : QString();
+}
+
+void TranslationPanel::setContextText(const QString& text) {
+    if (m_context) {
+        m_context->setPlainText(text);
+    }
 }
 
 void TranslationPanel::populateLanguages() {
@@ -237,6 +261,32 @@ void TranslationPanel::updateControls() {
     m_swapButton->setEnabled(!m_busy);
     m_sourceCombo->setEnabled(!m_busy);
     m_targetCombo->setEnabled(!m_busy);
+}
+
+void TranslationPanel::updateProviderDisplay() {
+    const ProviderSettings provider = m_settings->provider();
+    const QString storedName = provider.displayName.trimmed();
+    const bool defaultCustomName =
+        !provider.openRouter &&
+        (storedName.isEmpty() || storedName == QStringLiteral("Custom provider"));
+    const QString providerName =
+        provider.openRouter && storedName.isEmpty()
+            ? QStringLiteral("OpenRouter")
+            : (defaultCustomName ? tr("Custom provider") : storedName);
+    const QString model = provider.model.trimmed().isEmpty() ? tr("not selected")
+                                                              : provider.model.trimmed();
+    m_providerSummary->setText(
+        tr("Provider: %1 · Model: %2").arg(providerName, model));
+    m_providerSummary->setToolTip(
+        tr("Endpoint: %1").arg(provider.chatEndpoint.toString(QUrl::FullyEncoded)));
+
+    if (provider.openRouter && provider.zeroDataRetention) {
+        m_privacy->setText(tr("Strict route: Zero Data Retention endpoints only"));
+    } else if (provider.openRouter && provider.denyDataCollection) {
+        m_privacy->setText(tr("Private route: providers that collect prompts are excluded"));
+    } else {
+        m_privacy->setText(tr("Provider policy applies; review it before sending sensitive text"));
+    }
 }
 
 void TranslationPanel::requestTranslation() {

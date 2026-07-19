@@ -24,6 +24,9 @@ public:
                    TranslationController* controller,
                    QWidget* parent = nullptr);
 
+signals:
+    void interfaceLanguageChanged(const QString& languageCode);
+
 private:
     QWidget* createProviderPage();
     QWidget* createTranslationPage();
@@ -61,6 +64,7 @@ private:
 
     QCheckBox* m_startInTray = nullptr;
     QCheckBox* m_closeToTray = nullptr;
+    QComboBox* m_interfaceLanguage = nullptr;
 };
 
 } // namespace translunix

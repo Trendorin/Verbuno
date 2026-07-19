@@ -75,7 +75,7 @@ void HistoryStore::clear() {
     m_loaded = true;
     QFile file(m_path);
     if (file.exists() && !file.remove()) {
-        emit storeError(QStringLiteral("Could not remove the local history file."));
+        emit storeError(tr("Could not remove the local history file."));
         return;
     }
     emit changed();
@@ -98,19 +98,19 @@ void HistoryStore::load() {
         return;
     }
     if (info.isSymLink() || !info.isFile() || info.size() > kMaximumHistoryBytes) {
-        emit storeError(QStringLiteral("The local history file is unsafe or unexpectedly large."));
+        emit storeError(tr("The local history file is unsafe or unexpectedly large."));
         return;
     }
 
     QFile file(m_path);
     if (!file.open(QIODevice::ReadOnly)) {
-        emit storeError(QStringLiteral("Could not read the local history file."));
+        emit storeError(tr("Could not read the local history file."));
         return;
     }
     QJsonParseError error;
     const QJsonDocument document = QJsonDocument::fromJson(file.readAll(), &error);
     if (error.error != QJsonParseError::NoError || !document.isArray()) {
-        emit storeError(QStringLiteral("The local history file is damaged."));
+        emit storeError(tr("The local history file is damaged."));
         return;
     }
 
@@ -151,13 +151,13 @@ void HistoryStore::prune() {
 bool HistoryStore::save() {
     const QFileInfo existing(m_path);
     if (existing.exists() && existing.isSymLink()) {
-        emit storeError(QStringLiteral("Refusing to write history through a symbolic link."));
+        emit storeError(tr("Refusing to write history through a symbolic link."));
         return false;
     }
 
     QDir directory = existing.dir();
     if (!directory.exists() && !directory.mkpath(QStringLiteral("."))) {
-        emit storeError(QStringLiteral("Could not create the private history directory."));
+        emit storeError(tr("Could not create the private history directory."));
         return false;
     }
 
@@ -175,12 +175,12 @@ bool HistoryStore::save() {
 
     QSaveFile file(m_path);
     if (!file.open(QIODevice::WriteOnly)) {
-        emit storeError(QStringLiteral("Could not open the private history file for writing."));
+        emit storeError(tr("Could not open the private history file for writing."));
         return false;
     }
     const QByteArray payload = QJsonDocument(array).toJson(QJsonDocument::Compact);
     if (file.write(payload) != payload.size() || !file.commit()) {
-        emit storeError(QStringLiteral("Could not commit the local history file atomically."));
+        emit storeError(tr("Could not commit the local history file atomically."));
         return false;
     }
     QFile::setPermissions(m_path, QFileDevice::ReadOwner | QFileDevice::WriteOwner);

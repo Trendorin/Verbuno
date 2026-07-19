@@ -28,16 +28,17 @@
   <a href="https://github.com/Trendorin/TranslUnix/releases">Releases</a>
 </p>
 
-TranslUnix is a native Linux translation client built with C++20 and Qt 6 Widgets. It opens as a compact tray popup, streams translations from OpenRouter or another OpenAI-compatible endpoint, and keeps provider choice, model choice, prompts and local storage under the user's control.
+TranslUnix is a native Linux translation client built with C++20 and Qt 6 Widgets. The tray opens a standard system-decorated, resizable window, translations stream from OpenRouter or another OpenAI-compatible endpoint, and the active provider and model remain visible while you work.
 
 ## What it does
 
 | Area | Result |
 |---|---|
-| Quick access | A lightweight popup appears from the tray; the full window adds context, history and settings. |
+| Desktop window | A normal Qt window with native minimize, maximize and close controls on KDE, GNOME and other desktops. |
 | Translation | Roughly 190 language variants, automatic source detection, five writing styles and formatting preservation. |
 | Models | Any model ID, the `openrouter/free` router, or a refreshed catalog of models whose reported prices are zero. |
 | Providers | OpenRouter by default; custom OpenAI-compatible Chat Completions endpoints are supported. |
+| Interface | Runtime switching between English, Russian, Ukrainian and German without restarting the application. |
 | Output | Server-sent events are decoded incrementally, with cancellation and clear provider errors. |
 
 ## Privacy boundary
@@ -79,6 +80,7 @@ sha256sum --ignore-missing --check SHA256SUMS
 3. Keep `openrouter/free`, refresh the current free-model list, or enter an exact model ID.
 4. Leave **Exclude providers that collect prompt data** enabled. Enable **Zero Data Retention** only when the selected model has a compatible route.
 5. Choose source and target languages, then press `Ctrl+Enter` to translate.
+6. Select the interface language under **Settings → General**; the visible UI and tray menu update immediately.
 
 Keys kept only for the session never reach disk. A remembered key requires an available Secret Service implementation such as KWallet, GNOME Keyring or KeePassXC. TranslUnix never enables QtKeychain's plaintext fallback.
 
@@ -88,7 +90,7 @@ For another provider, select **OpenAI-compatible endpoint** and enter the comple
 
 - KDE Plasma: native tray integration is the primary target.
 - GNOME: a tray requires AppIndicator support; without it, the main window opens normally.
-- Other desktops and Wayland compositors: the popup uses standard Qt window behavior and falls back safely when exact tray positioning is unavailable.
+- Other desktops and Wayland compositors: the application uses a normal Qt top-level window managed by the system compositor.
 - Global shortcut: bind `translunix --toggle` in the desktop's keyboard settings.
 
 <a id="build-from-source"></a>

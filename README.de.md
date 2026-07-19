@@ -28,16 +28,17 @@
   <a href="https://github.com/Trendorin/TranslUnix/releases">Releases</a>
 </p>
 
-TranslUnix ist ein nativer Linux-Übersetzungsclient auf Basis von C++20 und Qt 6 Widgets. Ein kompaktes Fenster öffnet sich aus der Systemleiste, Antworten von OpenRouter oder einer anderen OpenAI-kompatiblen API werden gestreamt, und Anbieter, Modell sowie lokale Speicherung bleiben unter Kontrolle des Benutzers.
+TranslUnix ist ein nativer Linux-Übersetzungsclient auf Basis von C++20 und Qt 6 Widgets. Die Systemleiste öffnet ein normales, vom Desktop verwaltetes Fenster, Antworten von OpenRouter oder einer anderen OpenAI-kompatiblen API werden gestreamt und der aktive Anbieter sowie das Modell bleiben sichtbar.
 
 ## Funktionen
 
 | Bereich | Ergebnis |
 |---|---|
-| Schnellzugriff | Leichtes Tray-Popup; das Hauptfenster ergänzt Kontext, Verlauf und Einstellungen. |
+| Fenster | Normales Qt-Fenster mit nativen Schaltflächen zum Minimieren, Maximieren und Schließen unter KDE, GNOME und weiteren Desktops. |
 | Übersetzung | Rund 190 Sprachvarianten, automatische Erkennung, fünf Stile und Formaterhaltung. |
 | Modelle | Beliebige Modell-ID, `openrouter/free` oder ein aktueller Katalog mit als kostenlos gemeldeten Modellen. |
 | Anbieter | Standardmäßig OpenRouter; eigene OpenAI-kompatible Chat-Completions-Endpunkte. |
+| Oberfläche | Sofortiger Wechsel zwischen Englisch, Russisch, Ukrainisch und Deutsch ohne Neustart. |
 | Ausgabe | Inkrementelle SSE-Ausgabe, Abbruch und verständliche Anbieterfehler. |
 
 ## Datenschutzgrenzen
@@ -75,6 +76,7 @@ sha256sum --ignore-missing --check SHA256SUMS
 3. `openrouter/free` verwenden, den aktuellen kostenlosen Katalog laden oder eine exakte Modell-ID eintragen.
 4. Den Ausschluss datensammelnder Anbieter aktiviert lassen. ZDR nur aktivieren, wenn eine passende Route existiert.
 5. Sprachen wählen und mit `Ctrl+Enter` übersetzen.
+6. Die Sprache unter **Einstellungen → Allgemein** wählen; Fenster und Tray-Menü werden sofort aktualisiert.
 
 Ein Sitzungsschlüssel wird nicht auf die Festplatte geschrieben. Für dauerhaftes Speichern wird KWallet, GNOME Keyring, KeePassXC oder ein anderer Secret Service benötigt. Der unsichere Klartext-Fallback von QtKeychain ist deaktiviert.
 

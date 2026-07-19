@@ -27,6 +27,11 @@
   <url type="vcs-browser">https://github.com/Trendorin/TranslUnix</url>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.1.1" date="2026-07-19">
+      <description>
+        <p>Added a standard system-decorated window, visible provider and model information, and runtime English, Russian, Ukrainian and German interfaces.</p>
+      </description>
+    </release>
     <release version="0.1.0" date="2026-07-19">
       <description>
         <p>Initial native Linux release with tray popup, OpenRouter streaming, secure key storage, privacy routing, optional local history, and native packages.</p>

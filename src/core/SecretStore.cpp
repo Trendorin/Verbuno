@@ -68,7 +68,7 @@ void SecretStore::readSecret(const QString& account, bool allowPersistentRead) {
 #else
     QTimer::singleShot(0, this, [this, account] {
         emit secretRead(account, {},
-                        QStringLiteral("This build has no secure keychain integration."));
+                        tr("This build has no secure keychain integration."));
     });
 #endif
 }
@@ -96,7 +96,7 @@ void SecretStore::storeSecret(const QString& account, const QString& secret, boo
 #else
     QTimer::singleShot(0, this, [this, account] {
         emit secretStored(account, false,
-                          QStringLiteral("This build has no secure keychain integration."));
+                          tr("This build has no secure keychain integration."));
     });
 #endif
 }

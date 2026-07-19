@@ -1,5 +1,6 @@
 #include "core/EndpointValidator.h"
 #include "core/HistoryStore.h"
+#include "core/InterfaceLanguageManager.h"
 #include "core/LanguageCatalog.h"
 #include "core/PromptBuilder.h"
 #include "core/SseDecoder.h"
@@ -20,6 +21,7 @@ private slots:
     void exposesBroadUniqueLanguageCatalog();
     void decodesFragmentedSseEvents();
     void historyIsOptInAndOwnerOnly();
+    void normalizesSupportedInterfaceLanguages();
 };
 
 void CoreTests::validatesProviderEndpoints() {
@@ -120,6 +122,20 @@ void CoreTests::historyIsOptInAndOwnerOnly() {
     loaded.setEnabled(true);
     QCOMPARE(loaded.records().size(), qsizetype(1));
     QCOMPARE(loaded.records().first().translatedText, QStringLiteral("hallo"));
+}
+
+void CoreTests::normalizesSupportedInterfaceLanguages() {
+    QCOMPARE(InterfaceLanguageManager::supportedCodes(),
+             QStringList({QStringLiteral("en"), QStringLiteral("ru"), QStringLiteral("uk"),
+                          QStringLiteral("de")}));
+    QCOMPARE(InterfaceLanguageManager::normalize(QStringLiteral("ru_RU")),
+             QStringLiteral("ru"));
+    QCOMPARE(InterfaceLanguageManager::normalize(QStringLiteral("UK-ua")),
+             QStringLiteral("uk"));
+    QCOMPARE(InterfaceLanguageManager::normalize(QStringLiteral("de-DE")),
+             QStringLiteral("de"));
+    QCOMPARE(InterfaceLanguageManager::normalize(QStringLiteral("unsupported")),
+             QStringLiteral("en"));
 }
 
 QTEST_GUILESS_MAIN(CoreTests)

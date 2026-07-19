@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 
 project(
     TranslUnix
-    VERSION 0.1.0
+    VERSION 0.1.1
     DESCRIPTION "A native Linux AI translation client"
     HOMEPAGE_URL "https://github.com/Trendorin/TranslUnix"
     LANGUAGES CXX
@@ -47,6 +47,8 @@ add_library(translunix_core STATIC
     src/core/EndpointValidator.h
     src/core/HistoryStore.cpp
     src/core/HistoryStore.h
+    src/core/InterfaceLanguageManager.cpp
+    src/core/InterfaceLanguageManager.h
     src/core/LanguageCatalog.cpp
     src/core/LanguageCatalog.h
     src/core/PromptBuilder.cpp
@@ -97,8 +99,6 @@ qt_add_executable(translunix
     src/ui/SettingsDialog.h
     src/ui/TranslationPanel.cpp
     src/ui/TranslationPanel.h
-    src/ui/TranslatorPopup.cpp
-    src/ui/TranslatorPopup.h
     resources/translunix.qrc
 )
 
@@ -112,7 +112,10 @@ translunix_set_project_warnings(translunix)
 translunix_enable_sanitizers(translunix)
 
 qt_add_translations(translunix
-    TS_FILES translations/translunix_ru.ts
+    TS_FILES
+        translations/translunix_ru.ts
+        translations/translunix_uk.ts
+        translations/translunix_de.ts
     RESOURCE_PREFIX "/i18n"
 )
 
