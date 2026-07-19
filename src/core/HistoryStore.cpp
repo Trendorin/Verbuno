@@ -13,18 +13,47 @@
 #include <algorithm>
 #include <utility>
 
-namespace translunix {
+namespace verbuno {
 
 namespace {
 constexpr qint64 kMaximumHistoryBytes = 8 * 1024 * 1024;
+
+void migrateLegacyHistory(const QString& destinationPath) {
+    const QFileInfo destination(destinationPath);
+    if (destination.exists()) {
+        return;
+    }
+
+    QDir applicationParent = destination.dir();
+    if (!applicationParent.cdUp()) {
+        return;
+    }
+    const QString legacyPath =
+        applicationParent.filePath(QStringLiteral("TranslUnix/history.json"));
+    const QFileInfo legacy(legacyPath);
+    if (!legacy.exists() || legacy.isSymLink() || !legacy.isFile() ||
+        legacy.size() > kMaximumHistoryBytes) {
+        return;
+    }
+    if (!QDir().mkpath(destination.dir().absolutePath()) ||
+        !QFile::copy(legacyPath, destinationPath)) {
+        return;
+    }
+    QFile::setPermissions(destinationPath,
+                          QFileDevice::ReadOwner | QFileDevice::WriteOwner);
+}
 }
 
 HistoryStore::HistoryStore(QString storagePath, QObject* parent)
     : QObject(parent)
     , m_path(std::move(storagePath)) {
+    const bool usesDefaultPath = m_path.isEmpty();
     if (m_path.isEmpty()) {
         m_path = QDir(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))
                      .filePath(QStringLiteral("history.json"));
+    }
+    if (usesDefaultPath) {
+        migrateLegacyHistory(m_path);
     }
 }
 
@@ -187,4 +216,4 @@ bool HistoryStore::save() {
     return true;
 }
 
-} // namespace translunix
+} // namespace verbuno

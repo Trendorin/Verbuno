@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-namespace translunix {
+namespace verbuno {
 
 const QVector<Language>& LanguageCatalog::all() {
     static const QVector<Language> languages = [] {
@@ -215,4 +215,4 @@ std::optional<Language> LanguageCatalog::byCode(const QString& code) {
     return *found;
 }
 
-} // namespace translunix
+} // namespace verbuno

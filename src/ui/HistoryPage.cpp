@@ -14,7 +14,7 @@
 #include <QTableWidgetItem>
 #include <QVBoxLayout>
 
-namespace translunix {
+namespace verbuno {
 
 HistoryPage::HistoryPage(TranslationController* controller, QWidget* parent)
     : QWidget(parent)
@@ -120,4 +120,4 @@ void HistoryPage::showSelection() {
     m_translation->setPlainText(record.translatedText);
 }
 
-} // namespace translunix
+} // namespace verbuno

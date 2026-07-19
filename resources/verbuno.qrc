@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="/icons">
+    <file alias="app.svg">../data/icons/hicolor/scalable/apps/io.github.trendorin.Verbuno.svg</file>
+  </qresource>
+</RCC>

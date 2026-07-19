@@ -1,5 +1,5 @@
-function(translunix_enable_sanitizers target)
-    if(NOT TRANSLUNIX_ENABLE_SANITIZERS)
+function(verbuno_enable_sanitizers target)
+    if(NOT VERBUNO_ENABLE_SANITIZERS)
         return()
     endif()
 

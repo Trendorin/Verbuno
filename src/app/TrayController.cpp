@@ -10,7 +10,7 @@
 #include <QSystemTrayIcon>
 #include <QTimer>
 
-namespace translunix {
+namespace verbuno {
 
 TrayController::TrayController(QObject* parent)
     : QObject(parent)
@@ -77,7 +77,7 @@ void TrayController::createTray() {
         return;
     }
     m_tray = new QSystemTrayIcon(QIcon(QStringLiteral(":/icons/app.svg")), this);
-    m_tray->setToolTip(QStringLiteral("TranslUnix"));
+    m_tray->setToolTip(QStringLiteral("Verbuno"));
     createTrayMenu();
     connect(m_tray, &QSystemTrayIcon::activated, this,
             [this](QSystemTrayIcon::ActivationReason reason) {
@@ -96,7 +96,7 @@ void TrayController::createTrayMenu() {
     m_tray->setContextMenu(nullptr);
     delete m_trayMenu;
     m_trayMenu = new QMenu(m_mainWindow);
-    QAction* openAction = m_trayMenu->addAction(tr("Open TranslUnix"));
+    QAction* openAction = m_trayMenu->addAction(tr("Open Verbuno"));
     QAction* historyAction = m_trayMenu->addAction(tr("Local history"));
     QAction* settingsAction = m_trayMenu->addAction(tr("Settings"));
     m_trayMenu->addSeparator();
@@ -152,7 +152,6 @@ void TrayController::applyInterfaceLanguage(const QString& languageCode) {
         const QByteArray geometry = m_mainWindow->saveGeometry();
         const QString input = m_mainWindow->translatorInput();
         const QString output = m_mainWindow->translatorOutput();
-        const QString context = m_mainWindow->translatorContext();
 
         if (!m_languageManager.applyLanguage(languageCode)) {
             return;
@@ -172,7 +171,6 @@ void TrayController::applyInterfaceLanguage(const QString& languageCode) {
         m_mainWindow->restoreGeometry(geometry);
         m_mainWindow->setTranslatorInput(input);
         m_mainWindow->setTranslatorOutput(output);
-        m_mainWindow->setTranslatorContext(context);
         createTrayMenu();
 
         if (wasVisible) {
@@ -190,9 +188,9 @@ void TrayController::notifyHidden() {
         return;
     }
     m_hiddenNoticeShown = true;
-    m_tray->showMessage(QStringLiteral("TranslUnix"),
-                        tr("TranslUnix is still running in the system tray."),
+    m_tray->showMessage(QStringLiteral("Verbuno"),
+                        tr("Verbuno is still running in the system tray."),
                         QSystemTrayIcon::Information, 3500);
 }
 
-} // namespace translunix
+} // namespace verbuno

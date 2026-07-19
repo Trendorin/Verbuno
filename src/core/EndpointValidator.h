@@ -3,7 +3,7 @@
 #include <QString>
 #include <QUrl>
 
-namespace translunix {
+namespace verbuno {
 
 struct EndpointValidation {
     bool valid = false;
@@ -17,4 +17,4 @@ public:
     [[nodiscard]] static bool isLoopbackHost(const QString& host);
 };
 
-} // namespace translunix
+} // namespace verbuno

@@ -14,13 +14,13 @@
 
 #include <algorithm>
 
-namespace translunix {
+namespace verbuno {
 
 namespace {
 constexpr qsizetype kMaximumBufferedResponse = 4 * 1024 * 1024;
 
 QString uiText(const char* source) {
-    return QCoreApplication::translate("translunix::ProviderClient", source);
+    return QCoreApplication::translate("verbuno::ProviderClient", source);
 }
 
 bool isZeroPrice(const QJsonValue& value, bool missingIsZero = false) {
@@ -98,6 +98,11 @@ void ProviderClient::translate(const TranslationRequest& request, const QString&
 
     QNetworkRequest networkRequest =
         makeRequest(request.provider.chatEndpoint, apiKey, QByteArrayLiteral("text/event-stream"));
+    if (request.provider.openRouter &&
+        EndpointValidator::isOpenRouter(request.provider.chatEndpoint)) {
+        networkRequest.setRawHeader(QByteArrayLiteral("X-OpenRouter-Metadata"),
+                                    QByteArrayLiteral("enabled"));
+    }
     QNetworkReply* reply = m_network.post(networkRequest, QJsonDocument(body).toJson(QJsonDocument::Compact));
     m_translationReply = reply;
 
@@ -166,7 +171,7 @@ QNetworkRequest ProviderClient::makeRequest(const QUrl& endpoint,
                              QByteArrayLiteral("Bearer ") + apiKey.toUtf8());
     }
     request.setRawHeader(QByteArrayLiteral("User-Agent"),
-                         QByteArrayLiteral("TranslUnix/") + QByteArrayLiteral(TRANSLUNIX_VERSION));
+                         QByteArrayLiteral("Verbuno/") + QByteArrayLiteral(VERBUNO_VERSION));
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
                          QNetworkRequest::ManualRedirectPolicy);
     request.setTransferTimeout(90000);
@@ -227,6 +232,9 @@ void ProviderClient::handleTranslationFinished(QNetworkReply* reply) {
     if (m_accumulated.isEmpty()) {
         m_accumulated = extractCompletion(m_rawResponse);
     }
+    if (m_inferenceRoute.isEmpty()) {
+        updateInferenceRoute(parseInferenceRoute(m_rawResponse));
+    }
     if (m_accumulated.trimmed().isEmpty()) {
         failTranslation(m_receivedDone
                             ? uiText("The model returned an empty translation.")
@@ -277,6 +285,7 @@ void ProviderClient::processSseEvent(const QByteArray& event, QNetworkReply* rep
         return;
     }
     const QJsonObject root = document.object();
+    updateInferenceRoute(parseInferenceRoute(event));
     if (root.contains(QStringLiteral("error"))) {
         failTranslation(extractError(event, uiText("The provider reported a stream error.")),
                         reply);
@@ -304,6 +313,21 @@ void ProviderClient::appendContent(const QString& content) {
     emit translationChunk(content);
 }
 
+void ProviderClient::updateInferenceRoute(const InferenceRoute& route) {
+    InferenceRoute merged = m_inferenceRoute;
+    if (!route.provider.isEmpty()) {
+        merged.provider = route.provider;
+    }
+    if (!route.model.isEmpty()) {
+        merged.model = route.model;
+    }
+    if (merged.provider == m_inferenceRoute.provider && merged.model == m_inferenceRoute.model) {
+        return;
+    }
+    m_inferenceRoute = merged;
+    emit inferenceRouteResolved(m_inferenceRoute);
+}
+
 void ProviderClient::failTranslation(const QString& message, QNetworkReply* reply) {
     if (m_failureEmitted) {
         return;
@@ -320,9 +344,64 @@ void ProviderClient::resetTranslationState() {
     m_rawResponse.fill('\0');
     m_rawResponse.clear();
     m_accumulated.clear();
+    m_inferenceRoute = {};
     m_cancelled = false;
     m_receivedDone = false;
     m_failureEmitted = false;
+}
+
+InferenceRoute ProviderClient::parseInferenceRoute(const QByteArray& payload) {
+    QJsonParseError error;
+    const QJsonDocument document = QJsonDocument::fromJson(payload, &error);
+    if (error.error != QJsonParseError::NoError || !document.isObject()) {
+        return {};
+    }
+
+    const QJsonObject root = document.object();
+    InferenceRoute route;
+    route.model = root.value(QStringLiteral("model")).toString().simplified().left(256);
+
+    const QJsonObject metadata = root.value(QStringLiteral("openrouter_metadata")).toObject();
+    const QJsonArray available = metadata.value(QStringLiteral("endpoints"))
+                                     .toObject()
+                                     .value(QStringLiteral("available"))
+                                     .toArray();
+    for (const QJsonValue& value : available) {
+        const QJsonObject endpoint = value.toObject();
+        if (!endpoint.value(QStringLiteral("selected")).toBool()) {
+            continue;
+        }
+        route.provider =
+            endpoint.value(QStringLiteral("provider")).toString().simplified().left(128);
+        if (route.model.isEmpty()) {
+            route.model = endpoint.value(QStringLiteral("model"))
+                              .toString()
+                              .simplified()
+                              .left(256);
+        }
+        break;
+    }
+
+    if (route.provider.isEmpty()) {
+        const QJsonArray attempts = metadata.value(QStringLiteral("attempts")).toArray();
+        for (qsizetype index = attempts.size(); index > 0; --index) {
+            const QJsonObject attempt = attempts.at(index - 1).toObject();
+            const int status = attempt.value(QStringLiteral("status")).toInt();
+            if (status < 200 || status >= 300) {
+                continue;
+            }
+            route.provider =
+                attempt.value(QStringLiteral("provider")).toString().simplified().left(128);
+            if (route.model.isEmpty()) {
+                route.model = attempt.value(QStringLiteral("model"))
+                                  .toString()
+                                  .simplified()
+                                  .left(256);
+            }
+            break;
+        }
+    }
+    return route;
 }
 
 QString ProviderClient::extractCompletion(const QByteArray& payload) {
@@ -430,4 +509,4 @@ QVector<ModelInfo> ProviderClient::parseFreeModels(const QByteArray& payload, QS
     return result;
 }
 
-} // namespace translunix
+} // namespace verbuno

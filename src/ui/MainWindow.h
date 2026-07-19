@@ -6,7 +6,7 @@ class QListWidget;
 class QLabel;
 class QStackedWidget;
 
-namespace translunix {
+namespace verbuno {
 
 class AppSettings;
 class HistoryPage;
@@ -29,8 +29,6 @@ public:
     void setTranslatorInput(const QString& text);
     [[nodiscard]] QString translatorOutput() const;
     void setTranslatorOutput(const QString& text);
-    [[nodiscard]] QString translatorContext() const;
-    void setTranslatorContext(const QString& text);
 
 signals:
     void settingsRequested();
@@ -42,6 +40,7 @@ protected:
 private:
     void updateProviderIndicator();
 
+    TranslationController* m_controller;
     AppSettings* m_settings;
     bool m_trayAvailable = false;
     QListWidget* m_navigation = nullptr;
@@ -51,4 +50,4 @@ private:
     QLabel* m_providerIndicator = nullptr;
 };
 
-} // namespace translunix
+} // namespace verbuno

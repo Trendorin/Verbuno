@@ -39,8 +39,8 @@ jobs:
         run: |
           cmake -S . -B build-codeql -G Ninja \
             -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-            -DTRANSLUNIX_BUILD_TESTS=OFF \
-            -DTRANSLUNIX_REQUIRE_KEYCHAIN=ON
+            -DVERBUNO_BUILD_TESTS=OFF \
+            -DVERBUNO_REQUIRE_KEYCHAIN=ON
           cmake --build build-codeql --parallel 2
 
       - name: Analyze

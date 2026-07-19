@@ -2,7 +2,7 @@
 
 #include <QDialog>
 
-namespace translunix {
+namespace verbuno {
 
 class AboutDialog final : public QDialog {
     Q_OBJECT
@@ -11,4 +11,4 @@ public:
     explicit AboutDialog(QWidget* parent = nullptr);
 };
 
-} // namespace translunix
+} // namespace verbuno

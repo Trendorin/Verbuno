@@ -4,7 +4,7 @@
 
 #include <QString>
 
-namespace translunix {
+namespace verbuno {
 
 class PromptBuilder final {
 public:
@@ -12,4 +12,4 @@ public:
     [[nodiscard]] static QString styleInstruction(TranslationStyle style);
 };
 
-} // namespace translunix
+} // namespace verbuno

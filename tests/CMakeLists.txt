@@ -1,19 +1,19 @@
-qt_add_executable(translunix_tests
+qt_add_executable(verbuno_tests
     CoreTests.cpp
 )
 
-target_link_libraries(translunix_tests PRIVATE
-    translunix_core
+target_link_libraries(verbuno_tests PRIVATE
+    verbuno_core
     Qt6::Test
 )
-translunix_set_project_warnings(translunix_tests)
-translunix_enable_sanitizers(translunix_tests)
+verbuno_set_project_warnings(verbuno_tests)
+verbuno_enable_sanitizers(verbuno_tests)
 
-add_test(NAME translunix-core COMMAND translunix_tests)
-set_tests_properties(translunix-core PROPERTIES TIMEOUT 30)
+add_test(NAME verbuno-core COMMAND verbuno_tests)
+set_tests_properties(verbuno-core PROPERTIES TIMEOUT 30)
 
-add_test(NAME translunix-translations COMMAND translunix --check-translations)
-set_tests_properties(translunix-translations PROPERTIES
+add_test(NAME verbuno-translations COMMAND verbuno --check-translations)
+set_tests_properties(verbuno-translations PROPERTIES
     TIMEOUT 30
     ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
 )

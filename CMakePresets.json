@@ -13,7 +13,7 @@
       "binaryDir": "${sourceDir}/build/dev",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "TRANSLUNIX_BUILD_TESTS": "ON"
+        "VERBUNO_BUILD_TESTS": "ON"
       }
     },
     {
@@ -23,7 +23,7 @@
       "binaryDir": "${sourceDir}/build/release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "TRANSLUNIX_BUILD_TESTS": "ON"
+        "VERBUNO_BUILD_TESTS": "ON"
       }
     },
     {
@@ -32,7 +32,7 @@
       "inherits": "dev",
       "binaryDir": "${sourceDir}/build/asan",
       "cacheVariables": {
-        "TRANSLUNIX_ENABLE_SANITIZERS": "ON"
+        "VERBUNO_ENABLE_SANITIZERS": "ON"
       }
     }
   ],

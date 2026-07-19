@@ -6,7 +6,7 @@
 
 #include <optional>
 
-namespace translunix {
+namespace verbuno {
 
 class AppSettings;
 class HistoryStore;
@@ -24,8 +24,7 @@ public:
 
     void translate(const QString& input,
                    const QString& sourceCode,
-                   const QString& targetCode,
-                   const QString& context = {});
+                   const QString& targetCode);
     void cancel();
 
     void saveApiKey(const QString& apiKey, bool persist);
@@ -34,12 +33,16 @@ public:
 
     [[nodiscard]] bool isBusy() const;
     [[nodiscard]] QString credentialAccount() const;
+    [[nodiscard]] InferenceRoute inferenceRoute() const;
+    [[nodiscard]] QString requestedModel() const;
+    [[nodiscard]] bool inferenceRouteMatchesCurrentProvider() const;
     [[nodiscard]] const QVector<TranslationRecord>& historyRecords() const;
     void clearHistory();
 
 signals:
     void requestStarted();
     void translationChunk(const QString& text);
+    void inferenceRouteChanged(const InferenceRoute& route);
     void translationFinished(const QString& text);
     void requestFailed(const QString& message);
     void modelsLoaded(const QVector<ModelInfo>& models);
@@ -57,7 +60,6 @@ private:
     buildRequest(const QString& input,
                  const QString& sourceCode,
                  const QString& targetCode,
-                 const QString& context,
                  QString* error) const;
     [[nodiscard]] static QString accountForProvider(const ProviderSettings& provider);
 
@@ -68,6 +70,9 @@ private:
     SecretPurpose m_secretPurpose = SecretPurpose::None;
     std::optional<TranslationRequest> m_pendingRequest;
     std::optional<TranslationRequest> m_activeRequest;
+    InferenceRoute m_inferenceRoute;
+    QString m_routeAccount;
+    QString m_requestedModel;
 };
 
-} // namespace translunix
+} // namespace verbuno

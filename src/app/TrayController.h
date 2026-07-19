@@ -13,7 +13,7 @@
 class QSystemTrayIcon;
 class QMenu;
 
-namespace translunix {
+namespace verbuno {
 
 class MainWindow;
 class SettingsDialog;
@@ -51,4 +51,4 @@ private:
     bool m_hiddenNoticeShown = false;
 };
 
-} // namespace translunix
+} // namespace verbuno

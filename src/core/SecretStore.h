@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QString>
 
-namespace translunix {
+namespace verbuno {
 
 class SecretStore final : public QObject {
     Q_OBJECT
@@ -27,8 +27,10 @@ signals:
 
 private:
     void eraseSessionSecret(const QString& account);
+    void readLegacySecret(const QString& account);
+    void deleteLegacySecret(const QString& account, const QString& precedingError = {});
 
     QHash<QString, QString> m_sessionSecrets;
 };
 
-} // namespace translunix
+} // namespace verbuno

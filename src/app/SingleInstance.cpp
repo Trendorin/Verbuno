@@ -6,7 +6,7 @@
 #include <QLocalSocket>
 #include <QSharedPointer>
 
-namespace translunix {
+namespace verbuno {
 
 namespace {
 constexpr qsizetype kMaximumMessageSize = 64 * 1024;
@@ -18,7 +18,7 @@ SingleInstance::SingleInstance(const QString& applicationId,
     : QObject(parent) {
     const QByteArray digest =
         QCryptographicHash::hash(applicationId.toUtf8(), QCryptographicHash::Sha256).toHex();
-    m_serverName = QStringLiteral("translunix-%1").arg(QString::fromLatin1(digest.left(20)));
+    m_serverName = QStringLiteral("verbuno-%1").arg(QString::fromLatin1(digest.left(20)));
 
     if (m_server.listen(m_serverName)) {
         m_primary = true;
@@ -98,4 +98,4 @@ void SingleInstance::parseMessage(const QByteArray& payload) {
     emit argumentsReceived(arguments);
 }
 
-} // namespace translunix
+} // namespace verbuno

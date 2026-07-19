@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="data/icons/hicolor/scalable/apps/io.github.trendorin.TranslUnix.svg" width="144" alt="TranslUnix-Anwendungssymbol">
+  <img src="data/icons/hicolor/scalable/apps/io.github.trendorin.Verbuno.svg" width="144" alt="Verbuno-Anwendungssymbol">
 </p>
 
-<h1 align="center">TranslUnix</h1>
+<h1 align="center">Verbuno</h1>
 <p align="center">Schnelle modellgestützte Übersetzung aus der Linux-Systemleiste.</p>
 
 <p align="center">
@@ -13,8 +13,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Trendorin/TranslUnix/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Trendorin/TranslUnix/ci.yml?branch=main&style=flat-square&label=build&labelColor=15181b&color=5d666d"></a>
-  <a href="https://github.com/Trendorin/TranslUnix/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/Trendorin/TranslUnix?style=flat-square&label=release&labelColor=15181b&color=5d666d"></a>
+  <a href="https://github.com/Trendorin/Verbuno/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Trendorin/Verbuno/ci.yml?branch=main&style=flat-square&label=build&labelColor=15181b&color=5d666d"></a>
+  <a href="https://github.com/Trendorin/Verbuno/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/Trendorin/Verbuno?style=flat-square&label=release&labelColor=15181b&color=5d666d"></a>
   <img alt="C++20" src="https://img.shields.io/badge/C%2B%2B-20-5d666d?style=flat-square&labelColor=15181b">
   <img alt="Qt 6 Widgets" src="https://img.shields.io/badge/Qt-6_Widgets-5d666d?style=flat-square&labelColor=15181b">
   <a href="LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-5d666d?style=flat-square&labelColor=15181b"></a>
@@ -25,10 +25,10 @@
   <a href="#konfiguration">Konfiguration</a> ·
   <a href="#aus-dem-quellcode-bauen">Quellcode</a> ·
   <a href="docs/SECURITY_MODEL.md">Sicherheit</a> ·
-  <a href="https://github.com/Trendorin/TranslUnix/releases">Releases</a>
+  <a href="https://github.com/Trendorin/Verbuno/releases">Releases</a>
 </p>
 
-TranslUnix ist ein nativer Linux-Übersetzungsclient auf Basis von C++20 und Qt 6 Widgets. Die Systemleiste öffnet ein normales, vom Desktop verwaltetes Fenster, Antworten von OpenRouter oder einer anderen OpenAI-kompatiblen API werden gestreamt und der aktive Anbieter sowie das Modell bleiben sichtbar.
+Verbuno ist ein nativer Linux-Übersetzungsclient auf Basis von C++20 und Qt 6 Widgets. Die Systemleiste öffnet ein normales, vom Desktop verwaltetes Fenster, Antworten von OpenRouter oder einer anderen OpenAI-kompatiblen API werden gestreamt und das tatsächlich gewählte Modell sowie der Zielanbieter bleiben sichtbar.
 
 ## Funktionen
 
@@ -37,13 +37,13 @@ TranslUnix ist ein nativer Linux-Übersetzungsclient auf Basis von C++20 und Qt 
 | Fenster | Normales Qt-Fenster mit nativen Schaltflächen zum Minimieren, Maximieren und Schließen unter KDE, GNOME und weiteren Desktops. |
 | Übersetzung | Rund 190 Sprachvarianten, automatische Erkennung, fünf Stile und Formaterhaltung. |
 | Modelle | Beliebige Modell-ID, `openrouter/free` oder ein aktueller Katalog mit als kostenlos gemeldeten Modellen. |
-| Anbieter | Standardmäßig OpenRouter; eigene OpenAI-kompatible Chat-Completions-Endpunkte. |
+| Anbieter | Standardmäßig OpenRouter; angezeigt werden Modell und Zielanbieter aus der Antwort statt nur der angeforderten Router-ID. Eigene OpenAI-kompatible Endpunkte werden unterstützt. |
 | Oberfläche | Sofortiger Wechsel zwischen Englisch, Russisch, Ukrainisch und Deutsch ohne Neustart. |
 | Ausgabe | Inkrementelle SSE-Ausgabe, Abbruch und verständliche Anbieterfehler. |
 
 ## Datenschutzgrenzen
 
-| TranslUnix leistet | TranslUnix kann nicht garantieren |
+| Verbuno leistet | Verbuno kann nicht garantieren |
 |---|---|
 | Keine Telemetrie, Analyse, Absturz-Uploads oder Modellaufrufe im Hintergrund. | Dass ein externer Anbieter Texte niemals protokolliert, speichert oder zum Training nutzt. |
 | Text wird erst nach einer ausdrücklichen Aktion an den konfigurierten Endpunkt gesendet. | Dass ein kostenloser Endpunkt dauerhaft verfügbar, schnell oder kostenlos bleibt. |
@@ -55,13 +55,13 @@ Vor sensiblen Übersetzungen sollten die aktuellen OpenRouter-Dokumente zu [Date
 
 ## Installation
 
-Das passende Paket und `SHA256SUMS` aus dem [neuesten Release](https://github.com/Trendorin/TranslUnix/releases/latest) herunterladen.
+Das passende Paket und `SHA256SUMS` aus dem [neuesten Release](https://github.com/Trendorin/Verbuno/releases/latest) herunterladen.
 
 | System | Datei | Befehl |
 |---|---|---|
-| Fedora 44 | `translunix-*.rpm` | `sudo dnf install ./translunix-*.rpm` |
-| Ubuntu 24.04 | `translunix_*.deb` | `sudo apt install ./translunix_*.deb` |
-| Arch Linux | `translunix-*-x86_64.pkg.tar.zst` | `sudo pacman -U ./translunix-*-x86_64.pkg.tar.zst` |
+| Fedora 44 | `verbuno-*.rpm` | `sudo dnf install ./verbuno-*.rpm` |
+| Ubuntu 24.04 | `verbuno_*.deb` | `sudo apt install ./verbuno_*.deb` |
+| Arch Linux | `verbuno-*-x86_64.pkg.tar.zst` | `sudo pacman -U ./verbuno-*-x86_64.pkg.tar.zst` |
 
 Jedes Binärpaket wird im jeweiligen Zielsystem gebaut und installiert getestet. Der Release enthält außerdem `PKGBUILD`, Quell- und Installationsarchive im Format `.tar.xz`, ein SPDX-Dokument und Prüfsummen. AppImage gehört bewusst nicht zum Release.
 
@@ -78,6 +78,8 @@ sha256sum --ignore-missing --check SHA256SUMS
 5. Sprachen wählen und mit `Ctrl+Enter` übersetzen.
 6. Die Sprache unter **Einstellungen → Allgemein** wählen; Fenster und Tray-Menü werden sofort aktualisiert.
 
+Sobald die Antwort beginnt, zeigt der Arbeitsbereich das von der API gemeldete Modell. Bei OpenRouter wird auch der gewählte Zielanbieter angezeigt, etwa `Chutes über OpenRouter · qwen/qwen3-…`. Der Tooltip enthält weiterhin das angeforderte Modell oder den Router wie `openrouter/free`.
+
 Ein Sitzungsschlüssel wird nicht auf die Festplatte geschrieben. Für dauerhaftes Speichern wird KWallet, GNOME Keyring, KeePassXC oder ein anderer Secret Service benötigt. Der unsichere Klartext-Fallback von QtKeychain ist deaktiviert.
 
 Für einen anderen Dienst werden die vollständige `/chat/completions`-URL und die Modell-ID eingetragen. Unverschlüsseltes HTTP ist nur für Loopback-Dienste erlaubt.
@@ -87,15 +89,15 @@ Für einen anderen Dienst werden die vollständige `/chat/completions`-URL und d
 - KDE Plasma ist das Hauptziel mit nativer Tray-Unterstützung.
 - GNOME benötigt möglicherweise AppIndicator; ohne Tray wird das Hauptfenster geöffnet.
 - Andere Wayland-Compositoren verwenden Standard-Qt-Verhalten mit sicherem Fallback.
-- Globale Taste: `translunix --toggle` in den KDE/GNOME-Tastatureinstellungen binden.
+- Globale Taste: `verbuno --toggle` in den KDE/GNOME-Tastatureinstellungen binden.
 
 ## Aus dem Quellcode bauen
 
 Erforderlich sind CMake 3.25+, Ninja, ein C++20-Compiler, Qt 6.4+ und QtKeychain für Qt 6.
 
 ```bash
-git clone https://github.com/Trendorin/TranslUnix.git
-cd TranslUnix
+git clone https://github.com/Trendorin/Verbuno.git
+cd Verbuno
 cmake --preset release
 cmake --build --preset release
 ctest --preset release
@@ -110,9 +112,9 @@ Ubuntu-Abhängigkeiten: `build-essential cmake ninja-build qt6-base-dev qt6-svg-
 
 | Installation | Befehl |
 |---|---|
-| Fedora 44 | `sudo dnf remove translunix` |
-| Ubuntu 24.04 | `sudo apt remove translunix` |
-| Arch Linux | `sudo pacman -Rns translunix` |
+| Fedora 44 | `sudo dnf remove verbuno` |
+| Ubuntu 24.04 | `sudo apt remove verbuno` |
+| Arch Linux | `sudo pacman -Rns verbuno` |
 | Quellcode | `xargs -r -d '\n' rm -- < build/release/install_manifest.txt` |
 
 ## Sicherheitsgrenze

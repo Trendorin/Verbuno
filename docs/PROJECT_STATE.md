@@ -1,21 +1,21 @@
-# TranslUnix project state
+# Verbuno project state
 
 This file is the durable source of truth for continuing the project without relying on chat history.
 
 ## Current release
 
-- Product: **TranslUnix**
-- Repository: `Trendorin/TranslUnix`
-- Application ID: `io.github.trendorin.TranslUnix`
-- Binary/package: `translunix`
-- Version: `0.1.1`
+- Product: **Verbuno**
+- Repository: `Trendorin/Verbuno`
+- Application ID: `io.github.trendorin.Verbuno`
+- Binary/package: `verbuno`
+- Version: `0.2.0`
 - License: `GPL-3.0-or-later`
 - Stack: `C++20`, `Qt 6 Widgets`, `CMake`, no Electron, WebView, QML or background service
 - Primary desktop: KDE Plasma; supported fallback behavior for GNOME and other Qt-capable Linux desktops
 
 ## Product contract
 
-TranslUnix is a small tray-first client for high-quality model-assisted translation. OpenRouter is the default provider. A user can also supply a complete OpenAI-compatible Chat Completions endpoint, API key and model ID. The tray opens a standard system-decorated Qt window; the selected provider and model are always visible. The interface switches live between English, Russian, Ukrainian and German.
+Verbuno is a small tray-first client for high-quality model-assisted translation. OpenRouter is the default provider. A user can also supply a complete OpenAI-compatible Chat Completions endpoint, API key and model ID. The tray opens a standard system-decorated Qt window; the response-reported model and OpenRouter upstream provider are visible while the requested router remains available in a tooltip. The interface switches live between English, Russian, Ukrainian and German.
 
 The application is not offline: translation text leaves the machine for the configured provider. The application itself has no telemetry, hidden network calls or hosted backend. This distinction must remain explicit in the UI, README and privacy documentation.
 

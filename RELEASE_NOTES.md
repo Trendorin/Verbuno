@@ -1,15 +1,20 @@
-# TranslUnix 0.1.1
+# Verbuno 0.2.0
 
-This release makes TranslUnix behave like a conventional native Qt desktop application and adds complete runtime interface localization.
+This release completes the product rename to Verbuno and makes routed OpenRouter requests transparent in the interface.
 
 ## Highlights
 
-- standard system-decorated main window with native minimize, maximize, close and resize behavior;
-- tray click and `translunix --toggle` operate on that normal window without a frameless popup;
-- active provider and exact model ID remain visible in the toolbar and translation workspace;
-- English, Russian, Ukrainian and German can be selected under **Settings → General**;
-- the interface, tray menu, privacy guidance, validation messages and provider errors update without restarting;
-- translator input is preserved while rebuilding the interface after a language change.
+- the application, executable, package, desktop metadata and repository are now named Verbuno;
+- the translation workspace shows the exact model reported by the API instead of presenting `openrouter/free` as if it were the selected model;
+- OpenRouter responses also show the chosen upstream inference provider, for example `Chutes via OpenRouter`;
+- the requested model or router remains visible in the provider-summary tooltip;
+- the optional per-request context field has been removed;
+- upgrades migrate ordinary settings, safe local history and remembered QtKeychain credentials from TranslUnix;
+- the standard system-decorated window and runtime English, Russian, Ukrainian and German interface remain available.
+
+## Upgrade note
+
+The new binary and package name is `verbuno`. DEB, RPM and Arch package metadata replaces the old `translunix` package. On first launch, application data is copied or safely moved to the new Verbuno identity; the old history file is retained as a recovery copy.
 
 ## Release files
 
@@ -28,4 +33,4 @@ Every binary package is built and installed in its native target before publicat
 sha256sum --ignore-missing --check SHA256SUMS
 ```
 
-Translation content is sent to the configured external provider. Review that provider's current retention and training policy before submitting sensitive text.
+Translation content is sent to the configured external provider. The displayed upstream route is response metadata, not a privacy guarantee. Review OpenRouter and the selected inference provider's current retention and training policies before submitting sensitive text.

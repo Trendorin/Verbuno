@@ -2,7 +2,7 @@
 
 #include <utility>
 
-namespace translunix {
+namespace verbuno {
 
 QVector<QByteArray> SseDecoder::feed(const QByteArray& bytes) {
     QVector<QByteArray> events;
@@ -65,4 +65,4 @@ void SseDecoder::finishEvent(QVector<QByteArray>& events) {
     }
 }
 
-} // namespace translunix
+} // namespace verbuno

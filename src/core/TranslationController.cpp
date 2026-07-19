@@ -11,7 +11,7 @@
 
 #include <utility>
 
-namespace translunix {
+namespace verbuno {
 
 TranslationController::TranslationController(AppSettings* settings,
                                              SecretStore* secretStore,
@@ -39,10 +39,17 @@ TranslationController::TranslationController(AppSettings* settings,
                     emit apiKeyDeleted(error);
                 }
             });
-    connect(m_client, &ProviderClient::translationStarted, this,
-            &TranslationController::requestStarted);
+    connect(m_client, &ProviderClient::translationStarted, this, [this] {
+        emit inferenceRouteChanged(m_inferenceRoute);
+        emit requestStarted();
+    });
     connect(m_client, &ProviderClient::translationChunk, this,
             &TranslationController::translationChunk);
+    connect(m_client, &ProviderClient::inferenceRouteResolved, this,
+            [this](const InferenceRoute& route) {
+                m_inferenceRoute = route;
+                emit inferenceRouteChanged(m_inferenceRoute);
+            });
     connect(m_client, &ProviderClient::translationFinished, this,
             [this](const QString& output) {
                 if (m_activeRequest.has_value()) {
@@ -52,7 +59,9 @@ TranslationController::TranslationController(AppSettings* settings,
                     record.targetCode = m_activeRequest->targetCode;
                     record.sourceText = m_activeRequest->input;
                     record.translatedText = output;
-                    record.model = m_activeRequest->provider.model;
+                    record.model = m_inferenceRoute.model.isEmpty()
+                                       ? m_activeRequest->provider.model
+                                       : m_inferenceRoute.model;
                     m_history->append(std::move(record));
                 }
                 m_activeRequest.reset();
@@ -72,14 +81,13 @@ TranslationController::TranslationController(AppSettings* settings,
 
 void TranslationController::translate(const QString& input,
                                       const QString& sourceCode,
-                                      const QString& targetCode,
-                                      const QString& context) {
+                                      const QString& targetCode) {
     if (isBusy() || m_secretPurpose != SecretPurpose::None) {
         emit requestFailed(tr("A provider request is already running."));
         return;
     }
     QString error;
-    m_pendingRequest = buildRequest(input, sourceCode, targetCode, context, &error);
+    m_pendingRequest = buildRequest(input, sourceCode, targetCode, &error);
     if (!m_pendingRequest.has_value()) {
         emit requestFailed(error);
         return;
@@ -125,6 +133,20 @@ QString TranslationController::credentialAccount() const {
     return accountForProvider(m_settings->provider());
 }
 
+InferenceRoute TranslationController::inferenceRoute() const {
+    return m_inferenceRoute;
+}
+
+QString TranslationController::requestedModel() const {
+    return m_requestedModel;
+}
+
+bool TranslationController::inferenceRouteMatchesCurrentProvider() const {
+    const ProviderSettings provider = m_settings->provider();
+    return !m_routeAccount.isEmpty() && m_routeAccount == accountForProvider(provider) &&
+           m_requestedModel == provider.model.trimmed();
+}
+
 const QVector<TranslationRecord>& TranslationController::historyRecords() const {
     return m_history->records();
 }
@@ -168,6 +190,9 @@ void TranslationController::handleSecretRead(const QString& account,
 
     m_activeRequest = std::move(m_pendingRequest);
     m_pendingRequest.reset();
+    m_inferenceRoute = {};
+    m_routeAccount = accountForProvider(m_activeRequest->provider);
+    m_requestedModel = m_activeRequest->provider.model.trimmed();
     m_client->translate(*m_activeRequest, secret);
 }
 
@@ -175,7 +200,6 @@ std::optional<TranslationRequest>
 TranslationController::buildRequest(const QString& input,
                                     const QString& sourceCode,
                                     const QString& targetCode,
-                                    const QString& context,
                                     QString* error) const {
     if (input.trimmed().isEmpty()) {
         *error = tr("Enter text to translate.");
@@ -219,7 +243,6 @@ TranslationController::buildRequest(const QString& input,
     request.targetCode = target->code;
     request.targetName = target->name;
     request.style = m_settings->translationStyle();
-    request.context = context;
     request.customInstruction = m_settings->customInstruction();
     request.preserveFormatting = m_settings->preserveFormatting();
     request.provider = provider;
@@ -233,4 +256,4 @@ QString TranslationController::accountForProvider(const ProviderSettings& provid
     return QStringLiteral("provider-%1").arg(QString::fromLatin1(digest.left(24)));
 }
 
-} // namespace translunix
+} // namespace verbuno

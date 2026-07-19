@@ -11,7 +11,7 @@ class QLineEdit;
 class QPlainTextEdit;
 class QSpinBox;
 
-namespace translunix {
+namespace verbuno {
 
 class AppSettings;
 class TranslationController;
@@ -67,4 +67,4 @@ private:
     QComboBox* m_interfaceLanguage = nullptr;
 };
 
-} // namespace translunix
+} // namespace verbuno

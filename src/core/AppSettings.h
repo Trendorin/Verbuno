@@ -5,7 +5,7 @@
 #include <QObject>
 #include <QSettings>
 
-namespace translunix {
+namespace verbuno {
 
 class AppSettings final : public QObject {
     Q_OBJECT
@@ -64,4 +64,4 @@ private:
     QSettings m_settings;
 };
 
-} // namespace translunix
+} // namespace verbuno

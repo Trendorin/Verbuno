@@ -5,7 +5,7 @@
 
 #include <algorithm>
 
-#if defined(TRANSLUNIX_HAS_KEYCHAIN)
+#if defined(VERBUNO_HAS_KEYCHAIN)
 #  if __has_include(<qt6keychain/keychain.h>)
 #    include <qt6keychain/keychain.h>
 #  elif __has_include(<keychain.h>)
@@ -15,10 +15,11 @@
 #  endif
 #endif
 
-namespace translunix {
+namespace verbuno {
 
 namespace {
-const QString kService = QStringLiteral("io.github.trendorin.TranslUnix");
+const QString kService = QStringLiteral("io.github.trendorin.Verbuno");
+const QString kLegacyService = QStringLiteral("io.github.trendorin.TranslUnix");
 }
 
 SecretStore::SecretStore(QObject* parent)
@@ -44,7 +45,7 @@ void SecretStore::readSecret(const QString& account, bool allowPersistentRead) {
         return;
     }
 
-#if defined(TRANSLUNIX_HAS_KEYCHAIN)
+#if defined(VERBUNO_HAS_KEYCHAIN)
     auto* job = new QKeychain::ReadPasswordJob(kService, this);
     job->setKey(account);
     job->setInsecureFallback(false);
@@ -59,7 +60,7 @@ void SecretStore::readSecret(const QString& account, bool allowPersistentRead) {
                     return;
                 }
                 if (job->error() == QKeychain::EntryNotFound) {
-                    emit secretRead(account, {}, {});
+                    readLegacySecret(account);
                     return;
                 }
                 emit secretRead(account, {}, job->errorString());
@@ -82,15 +83,22 @@ void SecretStore::storeSecret(const QString& account, const QString& secret, boo
         return;
     }
 
-#if defined(TRANSLUNIX_HAS_KEYCHAIN)
+#if defined(VERBUNO_HAS_KEYCHAIN)
     auto* job = new QKeychain::WritePasswordJob(kService, this);
     job->setKey(account);
     job->setTextData(secret);
     job->setInsecureFallback(false);
     connect(job, &QKeychain::Job::finished, this,
             [this, job, account](QKeychain::Job*) {
-                emit secretStored(account, job->error() == QKeychain::NoError,
-                                  job->error() == QKeychain::NoError ? QString() : job->errorString());
+                const bool stored = job->error() == QKeychain::NoError;
+                if (stored) {
+                    auto* cleanup = new QKeychain::DeletePasswordJob(kLegacyService, this);
+                    cleanup->setKey(account);
+                    cleanup->setInsecureFallback(false);
+                    cleanup->start();
+                }
+                emit secretStored(account, stored,
+                                  stored ? QString() : job->errorString());
             });
     job->start();
 #else
@@ -103,21 +111,87 @@ void SecretStore::storeSecret(const QString& account, const QString& secret, boo
 
 void SecretStore::deleteSecret(const QString& account) {
     eraseSessionSecret(account);
-#if defined(TRANSLUNIX_HAS_KEYCHAIN)
+#if defined(VERBUNO_HAS_KEYCHAIN)
     auto* job = new QKeychain::DeletePasswordJob(kService, this);
     job->setKey(account);
     job->setInsecureFallback(false);
     connect(job, &QKeychain::Job::finished, this,
             [this, job, account](QKeychain::Job*) {
                 const bool absent = job->error() == QKeychain::EntryNotFound;
-                emit secretDeleted(account,
-                                   job->error() == QKeychain::NoError || absent
-                                       ? QString()
-                                       : job->errorString());
+                const QString error = job->error() == QKeychain::NoError || absent
+                                          ? QString()
+                                          : job->errorString();
+                deleteLegacySecret(account, error);
             });
     job->start();
 #else
     QTimer::singleShot(0, this, [this, account] { emit secretDeleted(account, {}); });
+#endif
+}
+
+void SecretStore::readLegacySecret(const QString& account) {
+#if defined(VERBUNO_HAS_KEYCHAIN)
+    auto* job = new QKeychain::ReadPasswordJob(kLegacyService, this);
+    job->setKey(account);
+    job->setInsecureFallback(false);
+    connect(job, &QKeychain::Job::finished, this,
+            [this, job, account](QKeychain::Job*) {
+                if (job->error() == QKeychain::NoError) {
+                    const QString secret = job->textData();
+                    if (secret.isEmpty()) {
+                        emit secretRead(account, {}, {});
+                        return;
+                    }
+                    m_sessionSecrets.insert(account, secret);
+                    emit secretRead(account, secret, {});
+
+                    auto* migration = new QKeychain::WritePasswordJob(kService, this);
+                    migration->setKey(account);
+                    migration->setTextData(secret);
+                    migration->setInsecureFallback(false);
+                    connect(migration, &QKeychain::Job::finished, this,
+                            [this, migration, account](QKeychain::Job*) {
+                                if (migration->error() == QKeychain::NoError) {
+                                    auto* cleanup =
+                                        new QKeychain::DeletePasswordJob(kLegacyService, this);
+                                    cleanup->setKey(account);
+                                    cleanup->setInsecureFallback(false);
+                                    cleanup->start();
+                                }
+                            });
+                    migration->start();
+                    return;
+                }
+                if (job->error() == QKeychain::EntryNotFound) {
+                    emit secretRead(account, {}, {});
+                    return;
+                }
+                emit secretRead(account, {}, job->errorString());
+            });
+    job->start();
+#else
+    Q_UNUSED(account)
+#endif
+}
+
+void SecretStore::deleteLegacySecret(const QString& account, const QString& precedingError) {
+#if defined(VERBUNO_HAS_KEYCHAIN)
+    auto* job = new QKeychain::DeletePasswordJob(kLegacyService, this);
+    job->setKey(account);
+    job->setInsecureFallback(false);
+    connect(job, &QKeychain::Job::finished, this,
+            [this, job, account, precedingError](QKeychain::Job*) {
+                const bool absent = job->error() == QKeychain::EntryNotFound;
+                const QString legacyError = job->error() == QKeychain::NoError || absent
+                                                ? QString()
+                                                : job->errorString();
+                emit secretDeleted(account, !precedingError.isEmpty() ? precedingError
+                                                                      : legacyError);
+            });
+    job->start();
+#else
+    Q_UNUSED(account)
+    Q_UNUSED(precedingError)
 #endif
 }
 
@@ -127,7 +201,7 @@ bool SecretStore::hasSessionSecret(const QString& account) const {
 }
 
 bool SecretStore::secureStorageCompiled() const {
-#if defined(TRANSLUNIX_HAS_KEYCHAIN)
+#if defined(VERBUNO_HAS_KEYCHAIN)
     return true;
 #else
     return false;
@@ -143,4 +217,4 @@ void SecretStore::eraseSessionSecret(const QString& account) {
     m_sessionSecrets.erase(found);
 }
 
-} // namespace translunix
+} // namespace verbuno

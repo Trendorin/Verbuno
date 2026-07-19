@@ -5,7 +5,7 @@
 
 #include <optional>
 
-namespace translunix {
+namespace verbuno {
 
 struct Language {
     QString code;
@@ -18,4 +18,4 @@ public:
     [[nodiscard]] static std::optional<Language> byCode(const QString& code);
 };
 
-} // namespace translunix
+} // namespace verbuno

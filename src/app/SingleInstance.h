@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QStringList>
 
-namespace translunix {
+namespace verbuno {
 
 class SingleInstance final : public QObject {
     Q_OBJECT
@@ -29,4 +29,4 @@ private:
     bool m_primary = false;
 };
 
-} // namespace translunix
+} // namespace verbuno

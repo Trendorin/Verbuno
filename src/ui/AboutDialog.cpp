@@ -5,11 +5,11 @@
 #include <QPixmap>
 #include <QVBoxLayout>
 
-namespace translunix {
+namespace verbuno {
 
 AboutDialog::AboutDialog(QWidget* parent)
     : QDialog(parent) {
-    setWindowTitle(tr("About TranslUnix"));
+    setWindowTitle(tr("About Verbuno"));
     setModal(true);
     setMinimumWidth(440);
 
@@ -23,7 +23,7 @@ AboutDialog::AboutDialog(QWidget* parent)
                         .scaled(96, 96, Qt::KeepAspectRatio, Qt::SmoothTransformation));
     layout->addWidget(icon);
 
-    auto* name = new QLabel(QStringLiteral("TranslUnix %1").arg(QStringLiteral(TRANSLUNIX_VERSION)),
+    auto* name = new QLabel(QStringLiteral("Verbuno %1").arg(QStringLiteral(VERBUNO_VERSION)),
                             this);
     QFont nameFont = name->font();
     nameFont.setBold(true);
@@ -34,8 +34,8 @@ AboutDialog::AboutDialog(QWidget* parent)
 
     auto* description = new QLabel(
         tr("A native C++20 and Qt 6 Widgets translation client for Linux.\n\n"
-           "TranslUnix contains no telemetry. Translation text is sent only to the API endpoint "
-           "you configure. The selected provider and model remain responsible for upstream "
+           "Verbuno contains no telemetry. Translation text is sent only to the API endpoint "
+           "you configure. OpenRouter and the selected upstream provider apply their own "
            "logging, retention, and training policies."),
         this);
     description->setWordWrap(true);
@@ -43,8 +43,8 @@ AboutDialog::AboutDialog(QWidget* parent)
     layout->addWidget(description);
 
     auto* links = new QLabel(
-        QStringLiteral("<a href=\"https://github.com/Trendorin/TranslUnix\">GitHub</a> · "
-                       "<a href=\"https://github.com/Trendorin/TranslUnix/blob/main/docs/PRIVACY.md\">"
+        QStringLiteral("<a href=\"https://github.com/Trendorin/Verbuno\">GitHub</a> · "
+                       "<a href=\"https://github.com/Trendorin/Verbuno/blob/main/docs/PRIVACY.md\">"
                        "Privacy</a> · GPL-3.0-or-later"),
         this);
     links->setOpenExternalLinks(true);
@@ -56,4 +56,4 @@ AboutDialog::AboutDialog(QWidget* parent)
     layout->addWidget(buttons);
 }
 
-} // namespace translunix
+} // namespace verbuno

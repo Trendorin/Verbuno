@@ -2,26 +2,30 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="de_DE">
   <context>
-    <name>translunix::MainWindow</name>
+    <name>verbuno::MainWindow</name>
     <message><source>Translate</source><translation>Übersetzen</translation></message>
     <message><source>Local history</source><translation>Lokaler Verlauf</translation></message>
     <message><source>Settings</source><translation>Einstellungen</translation></message>
-    <message><source>About TranslUnix</source><translation>Über TranslUnix</translation></message>
+    <message><source>About Verbuno</source><translation>Über Verbuno</translation></message>
     <message><source>Quit</source><translation>Beenden</translation></message>
     <message><source>Application</source><translation>Anwendung</translation></message>
     <message><source>Main</source><translation>Hauptleiste</translation></message>
     <message><source>No telemetry · text is sent only to the configured provider endpoint</source><translation>Keine Telemetrie · Text wird nur an den eingerichteten Anbieter gesendet</translation></message>
     <message><source>Custom provider</source><translation>Eigener Anbieter</translation></message>
-    <message><source>not selected</source><translation>nicht ausgewählt</translation></message>
-    <message><source>Provider: %1 · Model: %2</source><translation>Anbieter: %1 · Modell: %2</translation></message>
-    <message><source>Endpoint: %1</source><translation>API-Endpunkt: %1</translation></message>
+    <message><source>%1 via OpenRouter</source><translation>%1 über OpenRouter</translation></message>
+    <message><source>resolving…</source><translation>wird ermittelt…</translation></message>
+    <message><source>not reported yet</source><translation>noch nicht gemeldet</translation></message>
+    <message><source>Provider: %1 · Actual model: %2</source><translation>Anbieter: %1 · Tatsächliches Modell: %2</translation></message>
+    <message><source>Requested model or route: %1&#xa;Endpoint: %2</source><translation>Angefordertes Modell oder Route: %1&#xa;Endpunkt: %2</translation></message>
   </context>
   <context>
-    <name>translunix::TranslationPanel</name>
-    <message><source>Provider: %1 · Model: %2</source><translation>Anbieter: %1 · Modell: %2</translation></message>
-    <message><source>Endpoint: %1</source><translation>API-Endpunkt: %1</translation></message>
+    <name>verbuno::TranslationPanel</name>
     <message><source>Custom provider</source><translation>Eigener Anbieter</translation></message>
-    <message><source>not selected</source><translation>nicht ausgewählt</translation></message>
+    <message><source>%1 via OpenRouter</source><translation>%1 über OpenRouter</translation></message>
+    <message><source>resolving…</source><translation>wird ermittelt…</translation></message>
+    <message><source>not reported yet</source><translation>noch nicht gemeldet</translation></message>
+    <message><source>Provider: %1 · Actual model: %2</source><translation>Anbieter: %1 · Tatsächliches Modell: %2</translation></message>
+    <message><source>Requested model or route: %1&#xa;Endpoint: %2</source><translation>Angefordertes Modell oder Route: %1&#xa;Endpunkt: %2</translation></message>
     <message><source>Source language</source><translation>Ausgangssprache</translation></message>
     <message><source>Target language</source><translation>Zielsprache</translation></message>
     <message><source>Swap languages</source><translation>Sprachen tauschen</translation></message>
@@ -33,8 +37,6 @@
     <message><source>Casual</source><translation>Locker</translation></message>
     <message><source>Text</source><translation>Text</translation></message>
     <message><source>Enter or paste text to translate</source><translation>Text zum Übersetzen eingeben oder einfügen</translation></message>
-    <message><source>Optional context</source><translation>Optionaler Kontext</translation></message>
-    <message><source>Domain, audience, terminology, or surrounding context for disambiguation</source><translation>Fachgebiet, Zielgruppe, Terminologie oder zusätzlicher Kontext</translation></message>
     <message><source>Clear</source><translation>Leeren</translation></message>
     <message><source>Translate</source><translation>Übersetzen</translation></message>
     <message><source>Cancel</source><translation>Abbrechen</translation></message>
@@ -51,8 +53,8 @@
     <message><source>Translation complete.</source><translation>Übersetzung abgeschlossen.</translation></message>
   </context>
   <context>
-    <name>translunix::SettingsDialog</name>
-    <message><source>TranslUnix Settings</source><translation>TranslUnix-Einstellungen</translation></message>
+    <name>verbuno::SettingsDialog</name>
+    <message><source>Verbuno Settings</source><translation>Verbuno-Einstellungen</translation></message>
     <message><source>Provider</source><translation>Anbieter</translation></message>
     <message><source>Translation</source><translation>Übersetzung</translation></message>
     <message><source>Privacy</source><translation>Datenschutz</translation></message>
@@ -81,7 +83,7 @@
     <message><source>Exclude providers that collect prompt data (recommended)</source><translation>Anbieter ausschließen, die Anfragedaten erfassen (empfohlen)</translation></message>
     <message><source>Require Zero Data Retention endpoints (strict; fewer models)</source><translation>Zero Data Retention verlangen (strikt; weniger Modelle)</translation></message>
     <message><source>Prefer faster providers</source><translation>Schnellere Anbieter bevorzugen</translation></message>
-    <message><source>TranslUnix sends text only to this endpoint. OpenRouter is a proxy: the selected upstream provider may have its own retention or training policy. Free endpoints can be rate-limited or unavailable. Review OpenRouter privacy settings before sending sensitive content.</source><translation>TranslUnix sendet Text nur an diesen Endpunkt. OpenRouter arbeitet als Vermittler: Der gewählte Zielanbieter kann eigene Aufbewahrungs- oder Trainingsrichtlinien haben. Kostenlose Routen können begrenzt oder nicht verfügbar sein. Prüfen Sie die OpenRouter-Datenschutzeinstellungen, bevor Sie sensible Inhalte senden.</translation></message>
+    <message><source>Verbuno sends text only to this endpoint. OpenRouter is a proxy: the selected upstream provider may have its own retention or training policy. Free endpoints can be rate-limited or unavailable. Review OpenRouter privacy settings before sending sensitive content.</source><translation>Verbuno sendet Text nur an diesen Endpunkt. OpenRouter arbeitet als Vermittler: Der gewählte Zielanbieter kann eigene Aufbewahrungs- oder Trainingsrichtlinien haben. Kostenlose Routen können begrenzt oder nicht verfügbar sein. Prüfen Sie die OpenRouter-Datenschutzeinstellungen, bevor Sie sensible Inhalte senden.</translation></message>
     <message><source>Loading the current free-model catalog…</source><translation>Aktueller Katalog kostenloser Modelle wird geladen…</translation></message>
     <message><source>Paste a new API key first.</source><translation>Bitte zuerst einen neuen API-Schlüssel einfügen.</translation></message>
     <message><source>Default style</source><translation>Standardstil</translation></message>
@@ -107,15 +109,15 @@
     <message><source>Interface language</source><translation>Oberflächensprache</translation></message>
     <message><source>The interface language changes immediately after saving.</source><translation>Die Oberflächensprache wechselt direkt nach dem Speichern.</translation></message>
     <message><source>Start in the system tray</source><translation>Im Systembereich starten</translation></message>
-    <message><source>Closing the main window keeps TranslUnix in the tray</source><translation>TranslUnix beim Schließen des Hauptfensters im Systembereich lassen</translation></message>
-    <message><source>Desktop shortcut command: &lt;code&gt;translunix --toggle&lt;/code&gt;&lt;br&gt;Bind this command in KDE or GNOME keyboard settings for a compositor-safe global shortcut.</source><translation>Befehl für ein Tastenkürzel: &lt;code&gt;translunix --toggle&lt;/code&gt;&lt;br&gt;Diesen Befehl in den Tastatureinstellungen von KDE oder GNOME als zuverlässiges globales Kürzel festlegen.</translation></message>
-    <message><source>KDE Plasma has native tray support. GNOME may require an AppIndicator extension; when no tray is available, TranslUnix opens the main window instead.</source><translation>KDE Plasma unterstützt den Systembereich nativ. Unter GNOME kann eine AppIndicator-Erweiterung nötig sein; ohne Systembereich öffnet TranslUnix stattdessen das Hauptfenster.</translation></message>
+    <message><source>Closing the main window keeps Verbuno in the tray</source><translation>Verbuno beim Schließen des Hauptfensters im Systembereich lassen</translation></message>
+    <message><source>Desktop shortcut command: &lt;code&gt;verbuno --toggle&lt;/code&gt;&lt;br&gt;Bind this command in KDE or GNOME keyboard settings for a compositor-safe global shortcut.</source><translation>Befehl für ein Tastenkürzel: &lt;code&gt;verbuno --toggle&lt;/code&gt;&lt;br&gt;Diesen Befehl in den Tastatureinstellungen von KDE oder GNOME als zuverlässiges globales Kürzel festlegen.</translation></message>
+    <message><source>KDE Plasma has native tray support. GNOME may require an AppIndicator extension; when no tray is available, Verbuno opens the main window instead.</source><translation>KDE Plasma unterstützt den Systembereich nativ. Unter GNOME kann eine AppIndicator-Erweiterung nötig sein; ohne Systembereich öffnet Verbuno stattdessen das Hauptfenster.</translation></message>
     <message><source>Enter a model identifier.</source><translation>Bitte eine Modellkennung eingeben.</translation></message>
     <message><source> · %1k context</source><translation> · %1 Tsd. Kontext</translation></message>
     <message><source>Loaded %1 currently free models.</source><translation>%1 derzeit kostenlose Modelle geladen.</translation></message>
   </context>
   <context>
-    <name>translunix::HistoryPage</name>
+    <name>verbuno::HistoryPage</name>
     <message><source>Local history</source><translation>Lokaler Verlauf</translation></message>
     <message><source>Clear history</source><translation>Verlauf leeren</translation></message>
     <message><source>History is empty. It is disabled by default and can be enabled in Privacy settings.</source><translation>Der Verlauf ist leer. Er ist standardmäßig deaktiviert und kann in den Datenschutzeinstellungen aktiviert werden.</translation></message>
@@ -129,20 +131,20 @@
     <message><source>Delete every locally stored translation?</source><translation>Alle lokal gespeicherten Übersetzungen löschen?</translation></message>
   </context>
   <context>
-    <name>translunix::AboutDialog</name>
-    <message><source>About TranslUnix</source><translation>Über TranslUnix</translation></message>
-    <message><source>A native C++20 and Qt 6 Widgets translation client for Linux.&#10;&#10;TranslUnix contains no telemetry. Translation text is sent only to the API endpoint you configure. The selected provider and model remain responsible for upstream logging, retention, and training policies.</source><translation>Ein nativer Übersetzungsclient für Linux mit C++20 und Qt 6 Widgets.&#10;&#10;TranslUnix enthält keine Telemetrie. Übersetzungstext wird nur an den von Ihnen eingerichteten API-Endpunkt gesendet. Der gewählte Anbieter und das Modell bleiben für Protokollierung, Aufbewahrung und Trainingsrichtlinien verantwortlich.</translation></message>
+    <name>verbuno::AboutDialog</name>
+    <message><source>About Verbuno</source><translation>Über Verbuno</translation></message>
+    <message><source>A native C++20 and Qt 6 Widgets translation client for Linux.&#10;&#10;Verbuno contains no telemetry. Translation text is sent only to the API endpoint you configure. OpenRouter and the selected upstream provider apply their own logging, retention, and training policies.</source><translation>Ein nativer Übersetzungsclient für Linux mit C++20 und Qt 6 Widgets.&#10;&#10;Verbuno enthält keine Telemetrie. Übersetzungstext wird nur an den von Ihnen eingerichteten API-Endpunkt gesendet. OpenRouter und der gewählte Zielanbieter wenden ihre eigenen Richtlinien für Protokollierung, Aufbewahrung und Training an.</translation></message>
   </context>
   <context>
-    <name>translunix::TrayController</name>
-    <message><source>Open TranslUnix</source><translation>TranslUnix öffnen</translation></message>
+    <name>verbuno::TrayController</name>
+    <message><source>Open Verbuno</source><translation>Verbuno öffnen</translation></message>
     <message><source>Local history</source><translation>Lokaler Verlauf</translation></message>
     <message><source>Settings</source><translation>Einstellungen</translation></message>
     <message><source>Quit</source><translation>Beenden</translation></message>
-    <message><source>TranslUnix is still running in the system tray.</source><translation>TranslUnix läuft weiterhin im Systembereich.</translation></message>
+    <message><source>Verbuno is still running in the system tray.</source><translation>Verbuno läuft weiterhin im Systembereich.</translation></message>
   </context>
   <context>
-    <name>translunix::EndpointValidator</name>
+    <name>verbuno::EndpointValidator</name>
     <message><source>The provider endpoint is not a valid URL.</source><translation>Der Anbieter-Endpunkt ist keine gültige URL.</translation></message>
     <message><source>Credentials must not be embedded in the endpoint URL.</source><translation>Zugangsdaten dürfen nicht in die Endpunkt-URL eingebettet werden.</translation></message>
     <message><source>The endpoint must not contain a query or fragment.</source><translation>Der Endpunkt darf keine Abfrage oder kein Fragment enthalten.</translation></message>
@@ -150,7 +152,7 @@
     <message><source>Use HTTPS. Plain HTTP is allowed only for a loopback provider.</source><translation>HTTPS verwenden. Unverschlüsseltes HTTP ist nur für einen lokalen Anbieter erlaubt.</translation></message>
   </context>
   <context>
-    <name>translunix::HistoryStore</name>
+    <name>verbuno::HistoryStore</name>
     <message><source>Could not remove the local history file.</source><translation>Die lokale Verlaufsdatei konnte nicht entfernt werden.</translation></message>
     <message><source>The local history file is unsafe or unexpectedly large.</source><translation>Die lokale Verlaufsdatei ist unsicher oder unerwartet groß.</translation></message>
     <message><source>Could not read the local history file.</source><translation>Die lokale Verlaufsdatei konnte nicht gelesen werden.</translation></message>
@@ -161,11 +163,11 @@
     <message><source>Could not commit the local history file atomically.</source><translation>Die lokale Verlaufsdatei konnte nicht atomar gespeichert werden.</translation></message>
   </context>
   <context>
-    <name>translunix::SecretStore</name>
+    <name>verbuno::SecretStore</name>
     <message><source>This build has no secure keychain integration.</source><translation>Diese Version hat keine sichere Schlüsselbund-Integration.</translation></message>
   </context>
   <context>
-    <name>translunix::TranslationController</name>
+    <name>verbuno::TranslationController</name>
     <message><source>A provider request is already running.</source><translation>Eine Anbieteranfrage läuft bereits.</translation></message>
     <message><source>The API key is unexpectedly short.</source><translation>Der API-Schlüssel ist unerwartet kurz.</translation></message>
     <message><source>Wait for the current provider request to finish.</source><translation>Bitte warten, bis die aktuelle Anbieteranfrage abgeschlossen ist.</translation></message>
@@ -177,7 +179,7 @@
     <message><source>Source and target languages must be different.</source><translation>Ausgangs- und Zielsprache müssen verschieden sein.</translation></message>
   </context>
   <context>
-    <name>translunix::ProviderClient</name>
+    <name>verbuno::ProviderClient</name>
     <message><source>No API key is available for the selected provider.</source><translation>Für den ausgewählten Anbieter ist kein API-Schlüssel verfügbar.</translation></message>
     <message><source>Enter text to translate.</source><translation>Text zum Übersetzen eingeben.</translation></message>
     <message><source>Choose or enter a model identifier.</source><translation>Eine Modellkennung auswählen oder eingeben.</translation></message>

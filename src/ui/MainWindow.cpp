@@ -1,6 +1,7 @@
 #include "ui/MainWindow.h"
 
 #include "core/AppSettings.h"
+#include "core/TranslationController.h"
 #include "ui/AboutDialog.h"
 #include "ui/HistoryPage.h"
 #include "ui/TranslationPanel.h"
@@ -19,17 +20,18 @@
 #include <QSizePolicy>
 #include <QToolBar>
 
-namespace translunix {
+namespace verbuno {
 
 MainWindow::MainWindow(TranslationController* controller,
                        AppSettings* settings,
                        QWidget* parent)
     : QMainWindow(parent)
+    , m_controller(controller)
     , m_settings(settings) {
     setWindowFlags(Qt::Window | Qt::WindowTitleHint | Qt::WindowSystemMenuHint |
                    Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint |
                    Qt::WindowCloseButtonHint);
-    setWindowTitle(QStringLiteral("TranslUnix"));
+    setWindowTitle(QStringLiteral("Verbuno"));
     setWindowIcon(QIcon(QStringLiteral(":/icons/app.svg")));
     setMinimumSize(820, 620);
     resize(1040, 760);
@@ -57,7 +59,7 @@ MainWindow::MainWindow(TranslationController* controller,
 
     auto* settingsAction = new QAction(tr("Settings"), this);
     settingsAction->setShortcut(QKeySequence::Preferences);
-    auto* aboutAction = new QAction(tr("About TranslUnix"), this);
+    auto* aboutAction = new QAction(tr("About Verbuno"), this);
     auto* quitAction = new QAction(tr("Quit"), this);
     quitAction->setShortcut(QKeySequence::Quit);
 
@@ -91,6 +93,14 @@ MainWindow::MainWindow(TranslationController* controller,
     });
     connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
     connect(m_settings, &AppSettings::changed, this, &MainWindow::updateProviderIndicator);
+    connect(m_controller, &TranslationController::inferenceRouteChanged, this,
+            &MainWindow::updateProviderIndicator);
+    connect(m_controller, &TranslationController::requestStarted, this,
+            &MainWindow::updateProviderIndicator);
+    connect(m_controller, &TranslationController::translationFinished, this,
+            &MainWindow::updateProviderIndicator);
+    connect(m_controller, &TranslationController::requestFailed, this,
+            &MainWindow::updateProviderIndicator);
 }
 
 void MainWindow::setTrayAvailable(bool available) {
@@ -140,30 +150,32 @@ void MainWindow::setTranslatorOutput(const QString& text) {
     m_translator->setOutputText(text);
 }
 
-QString MainWindow::translatorContext() const {
-    return m_translator->contextText();
-}
-
-void MainWindow::setTranslatorContext(const QString& text) {
-    m_translator->setContextText(text);
-}
-
 void MainWindow::updateProviderIndicator() {
     const ProviderSettings provider = m_settings->provider();
     const QString storedName = provider.displayName.trimmed();
     const bool defaultCustomName =
         !provider.openRouter &&
         (storedName.isEmpty() || storedName == QStringLiteral("Custom provider"));
-    const QString providerName =
-        provider.openRouter && storedName.isEmpty()
-            ? QStringLiteral("OpenRouter")
-            : (defaultCustomName ? tr("Custom provider") : storedName);
-    const QString model = provider.model.trimmed().isEmpty() ? tr("not selected")
-                                                              : provider.model.trimmed();
+    const QString providerName = provider.openRouter
+                                     ? QStringLiteral("OpenRouter")
+                                     : (defaultCustomName ? tr("Custom provider") : storedName);
+    const bool routeMatches = m_controller->inferenceRouteMatchesCurrentProvider();
+    const InferenceRoute route = routeMatches ? m_controller->inferenceRoute() : InferenceRoute{};
+    const QString actualProvider =
+        provider.openRouter && !route.provider.isEmpty()
+            ? tr("%1 via OpenRouter").arg(route.provider)
+            : providerName;
+    const QString actualModel =
+        !route.model.isEmpty()
+            ? route.model
+            : (routeMatches && m_controller->isBusy() ? tr("resolving…")
+                                                       : tr("not reported yet"));
     m_providerIndicator->setText(
-        tr("Provider: %1 · Model: %2").arg(providerName, model));
+        tr("Provider: %1 · Actual model: %2").arg(actualProvider, actualModel));
     m_providerIndicator->setToolTip(
-        tr("Endpoint: %1").arg(provider.chatEndpoint.toString(QUrl::FullyEncoded)));
+        tr("Requested model or route: %1\nEndpoint: %2")
+            .arg(provider.model.trimmed(),
+                 provider.chatEndpoint.toString(QUrl::FullyEncoded)));
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {
@@ -176,4 +188,4 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     QMainWindow::closeEvent(event);
 }
 
-} // namespace translunix
+} // namespace verbuno

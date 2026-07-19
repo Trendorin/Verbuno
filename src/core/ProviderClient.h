@@ -9,7 +9,7 @@
 
 class QNetworkReply;
 
-namespace translunix {
+namespace verbuno {
 
 class ProviderClient final : public QObject {
     Q_OBJECT
@@ -22,10 +22,12 @@ public:
     void cancel();
 
     [[nodiscard]] bool isTranslating() const;
+    [[nodiscard]] static InferenceRoute parseInferenceRoute(const QByteArray& payload);
 
 signals:
     void translationStarted();
     void translationChunk(const QString& text);
+    void inferenceRouteResolved(const InferenceRoute& route);
     void translationFinished(const QString& text);
     void requestFailed(const QString& message);
     void modelsLoaded(const QVector<ModelInfo>& models);
@@ -40,6 +42,7 @@ private:
     void handleModelsFinished(QNetworkReply* reply);
     void processSseEvent(const QByteArray& event, QNetworkReply* reply);
     void appendContent(const QString& content);
+    void updateInferenceRoute(const InferenceRoute& route);
     void failTranslation(const QString& message, QNetworkReply* reply = nullptr);
     void resetTranslationState();
 
@@ -56,9 +59,10 @@ private:
     SseDecoder m_decoder;
     QByteArray m_rawResponse;
     QString m_accumulated;
+    InferenceRoute m_inferenceRoute;
     bool m_cancelled = false;
     bool m_receivedDone = false;
     bool m_failureEmitted = false;
 };
 
-} // namespace translunix
+} // namespace verbuno

@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="data/icons/hicolor/scalable/apps/io.github.trendorin.TranslUnix.svg" width="144" alt="TranslUnix application icon">
+  <img src="data/icons/hicolor/scalable/apps/io.github.trendorin.Verbuno.svg" width="144" alt="Verbuno application icon">
 </p>
 
-<h1 align="center">TranslUnix</h1>
+<h1 align="center">Verbuno</h1>
 <p align="center">Fast, model-powered translation from the Linux system tray.</p>
 
 <p align="center">
@@ -13,8 +13,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Trendorin/TranslUnix/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Trendorin/TranslUnix/ci.yml?branch=main&style=flat-square&label=build&labelColor=15181b&color=5d666d"></a>
-  <a href="https://github.com/Trendorin/TranslUnix/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/Trendorin/TranslUnix?style=flat-square&label=release&labelColor=15181b&color=5d666d"></a>
+  <a href="https://github.com/Trendorin/Verbuno/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/Trendorin/Verbuno/ci.yml?branch=main&style=flat-square&label=build&labelColor=15181b&color=5d666d"></a>
+  <a href="https://github.com/Trendorin/Verbuno/releases/latest"><img alt="Release" src="https://img.shields.io/github/v/release/Trendorin/Verbuno?style=flat-square&label=release&labelColor=15181b&color=5d666d"></a>
   <img alt="C++20" src="https://img.shields.io/badge/C%2B%2B-20-5d666d?style=flat-square&labelColor=15181b">
   <img alt="Qt 6 Widgets" src="https://img.shields.io/badge/Qt-6_Widgets-5d666d?style=flat-square&labelColor=15181b">
   <a href="LICENSE"><img alt="GPL-3.0-or-later" src="https://img.shields.io/badge/license-GPL--3.0--or--later-5d666d?style=flat-square&labelColor=15181b"></a>
@@ -25,10 +25,10 @@
   <a href="#configure">Configure</a> ·
   <a href="#build-from-source">Source</a> ·
   <a href="docs/SECURITY_MODEL.md">Security</a> ·
-  <a href="https://github.com/Trendorin/TranslUnix/releases">Releases</a>
+  <a href="https://github.com/Trendorin/Verbuno/releases">Releases</a>
 </p>
 
-TranslUnix is a native Linux translation client built with C++20 and Qt 6 Widgets. The tray opens a standard system-decorated, resizable window, translations stream from OpenRouter or another OpenAI-compatible endpoint, and the active provider and model remain visible while you work.
+Verbuno is a native Linux translation client built with C++20 and Qt 6 Widgets. The tray opens a standard system-decorated, resizable window, translations stream from OpenRouter or another OpenAI-compatible endpoint, and the actual routed model and upstream provider remain visible while you work.
 
 ## What it does
 
@@ -37,13 +37,13 @@ TranslUnix is a native Linux translation client built with C++20 and Qt 6 Widget
 | Desktop window | A normal Qt window with native minimize, maximize and close controls on KDE, GNOME and other desktops. |
 | Translation | Roughly 190 language variants, automatic source detection, five writing styles and formatting preservation. |
 | Models | Any model ID, the `openrouter/free` router, or a refreshed catalog of models whose reported prices are zero. |
-| Providers | OpenRouter by default; custom OpenAI-compatible Chat Completions endpoints are supported. |
+| Providers | OpenRouter by default; the response-reported model and upstream provider are shown instead of merely repeating the requested router ID. Custom OpenAI-compatible endpoints are supported. |
 | Interface | Runtime switching between English, Russian, Ukrainian and German without restarting the application. |
 | Output | Server-sent events are decoded incrementally, with cancellation and clear provider errors. |
 
 ## Privacy boundary
 
-| TranslUnix does | TranslUnix cannot guarantee |
+| Verbuno does | Verbuno cannot guarantee |
 |---|---|
 | No telemetry, analytics, crash uploads or background model calls. | That an external provider never logs, retains or trains on submitted text. |
 | Sends text only to the configured chat endpoint after an explicit translation action. | That a free endpoint remains available, fast or free in the future. |
@@ -56,13 +56,13 @@ OpenRouter states that prompt retention on its own platform is opt-in, while ups
 <a id="install"></a>
 ## Install
 
-Download the matching asset and `SHA256SUMS` from the [latest release](https://github.com/Trendorin/TranslUnix/releases/latest).
+Download the matching asset and `SHA256SUMS` from the [latest release](https://github.com/Trendorin/Verbuno/releases/latest).
 
 | System | Asset | Command |
 |---|---|---|
-| Fedora 44 | `translunix-*.rpm` | `sudo dnf install ./translunix-*.rpm` |
-| Ubuntu 24.04 | `translunix_*.deb` | `sudo apt install ./translunix_*.deb` |
-| Arch Linux | `translunix-*-x86_64.pkg.tar.zst` | `sudo pacman -U ./translunix-*-x86_64.pkg.tar.zst` |
+| Fedora 44 | `verbuno-*.rpm` | `sudo dnf install ./verbuno-*.rpm` |
+| Ubuntu 24.04 | `verbuno_*.deb` | `sudo apt install ./verbuno_*.deb` |
+| Arch Linux | `verbuno-*-x86_64.pkg.tar.zst` | `sudo pacman -U ./verbuno-*-x86_64.pkg.tar.zst` |
 
 Each binary package is built and install-tested in its native target. `PKGBUILD`, source and install-tree `.tar.xz` archives, an SPDX document and checksums are included in the same release. AppImage is intentionally not part of the release set.
 
@@ -82,7 +82,9 @@ sha256sum --ignore-missing --check SHA256SUMS
 5. Choose source and target languages, then press `Ctrl+Enter` to translate.
 6. Select the interface language under **Settings → General**; the visible UI and tray menu update immediately.
 
-Keys kept only for the session never reach disk. A remembered key requires an available Secret Service implementation such as KWallet, GNOME Keyring or KeePassXC. TranslUnix never enables QtKeychain's plaintext fallback.
+After a response begins, the workspace shows the exact model returned by the API. With OpenRouter it also shows the selected upstream provider, for example `Chutes via OpenRouter · qwen/qwen3-…`. Hover the summary to see the requested model or router such as `openrouter/free`.
+
+Keys kept only for the session never reach disk. A remembered key requires an available Secret Service implementation such as KWallet, GNOME Keyring or KeePassXC. Verbuno never enables QtKeychain's plaintext fallback.
 
 For another provider, select **OpenAI-compatible endpoint** and enter the complete `/chat/completions` URL and model ID. Plain HTTP is refused except for loopback services such as a local model server.
 
@@ -91,7 +93,7 @@ For another provider, select **OpenAI-compatible endpoint** and enter the comple
 - KDE Plasma: native tray integration is the primary target.
 - GNOME: a tray requires AppIndicator support; without it, the main window opens normally.
 - Other desktops and Wayland compositors: the application uses a normal Qt top-level window managed by the system compositor.
-- Global shortcut: bind `translunix --toggle` in the desktop's keyboard settings.
+- Global shortcut: bind `verbuno --toggle` in the desktop's keyboard settings.
 
 <a id="build-from-source"></a>
 ## Build from source
@@ -118,8 +120,8 @@ sudo apt install build-essential cmake ninja-build \
 </details>
 
 ```bash
-git clone https://github.com/Trendorin/TranslUnix.git
-cd TranslUnix
+git clone https://github.com/Trendorin/Verbuno.git
+cd Verbuno
 cmake --preset release
 cmake --build --preset release
 ctest --preset release
@@ -130,12 +132,14 @@ cmake --install build/release --prefix "$HOME/.local"
 
 | Installation | Command |
 |---|---|
-| Fedora 44 | `sudo dnf remove translunix` |
-| Ubuntu 24.04 | `sudo apt remove translunix` |
-| Arch Linux | `sudo pacman -Rns translunix` |
+| Fedora 44 | `sudo dnf remove verbuno` |
+| Ubuntu 24.04 | `sudo apt remove verbuno` |
+| Arch Linux | `sudo pacman -Rns verbuno` |
 | Source build | `xargs -r -d '\n' rm -- < build/release/install_manifest.txt` |
 
-Uninstalling does not remove the optional local history or a key stored in the desktop wallet. Remove the key inside TranslUnix first, clear history, then optionally delete `$XDG_CONFIG_HOME/Trendorin/TranslUnix.conf` and `$XDG_DATA_HOME/Trendorin/TranslUnix/`.
+Uninstalling does not remove the optional local history or a key stored in the desktop wallet. Remove the key inside Verbuno first, clear history, then optionally delete `$XDG_CONFIG_HOME/Trendorin/Verbuno.conf` and `$XDG_DATA_HOME/Trendorin/Verbuno/`.
+
+Upgrading from the former TranslUnix package preserves non-secret settings, local history and a remembered wallet key on first launch. The old package name is replaced by `verbuno`.
 
 ## Security boundary
 
