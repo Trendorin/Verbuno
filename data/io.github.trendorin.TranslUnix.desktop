@@ -1,0 +1,22 @@
+[Desktop Entry]
+Type=Application
+Name=TranslUnix
+GenericName=AI Translator
+Comment=Translate text through your own AI provider
+Exec=translunix --toggle
+Icon=io.github.trendorin.TranslUnix
+Terminal=false
+Categories=Utility;Office;Qt;
+Keywords=translate;translation;language;OpenRouter;AI;LLM;
+StartupNotify=false
+StartupWMClass=TranslUnix
+X-GNOME-UsesNotifications=true
+Actions=Window;Settings;
+
+[Desktop Action Window]
+Name=Open TranslUnix
+Exec=translunix --show
+
+[Desktop Action Settings]
+Name=Settings
+Exec=translunix --settings

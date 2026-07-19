@@ -1,0 +1,334 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Resolve release version
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.ref_type == 'tag' ||
+      startsWith(github.event.head_commit.message, 'release:')
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          project_version="$(awk '$1 == "VERSION" { print $2; exit }' CMakeLists.txt)"
+          test -n "${project_version}"
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            version="${GITHUB_REF_NAME#v}"
+            if [[ "${version}" != "${project_version}" ]]; then
+              echo "Tag version ${version} does not match project version ${project_version}" >&2
+              exit 1
+            fi
+          else
+            version="${project_version}"
+          fi
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+  portable:
+    name: Ubuntu 24.04 DEB and TXZ
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Install Ubuntu build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential cmake ninja-build qt6-base-dev qt6-svg-dev qt6-tools-dev \
+            qtkeychain-qt6-dev
+
+      - name: Configure, build and test
+        run: |
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DTRANSLUNIX_BUILD_TESTS=ON \
+            -DTRANSLUNIX_REQUIRE_KEYCHAIN=ON
+          cmake --build build --parallel 2
+          ctest --test-dir build --output-on-failure
+
+      - name: Build DEB and install tree
+        run: |
+          mkdir -p dist package-output
+          cpack --config build/CPackConfig.cmake -G DEB -B package-output
+          cpack --config build/CPackConfig.cmake -G TXZ -B package-output
+          cp package-output/*.deb package-output/*.tar.xz dist/
+
+      - name: Verify DEB and install tree
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          deb_file="$(find dist -maxdepth 1 -type f -name '*.deb' -print -quit)"
+          test -n "${deb_file}"
+          deb_file="$(realpath "${deb_file}")"
+          dpkg-deb --info "${deb_file}"
+          dpkg-deb --contents "${deb_file}"
+          if dpkg-deb --field "${deb_file}" Depends | grep -Eq '(^|, )[[:alnum:].+-]+-dev([ ,]|$)'; then
+            echo "DEB unexpectedly depends on a development package" >&2
+            exit 1
+          fi
+          sudo apt-get install --no-install-recommends -y "${deb_file}"
+          dpkg-query --show --showformat='${Package} ${Version}\n' translunix
+          dpkg --verify translunix
+          ldd /usr/bin/translunix | tee /tmp/translunix-deb-ldd.txt
+          ! grep -q 'not found' /tmp/translunix-deb-ldd.txt
+          tree_file="dist/TranslUnix-${VERSION}-x86_64.tar.xz"
+          test -f "${tree_file}"
+          tar -tJf "${tree_file}" | tee /tmp/translunix-tree.txt
+          grep -Eq '(^|/)bin/translunix$' /tmp/translunix-tree.txt
+          if tar -tJf "${tree_file}" | grep -Eq '(^/|(^|/)\.\.(/|$))'; then
+            echo "Install tree contains an unsafe path" >&2
+            exit 1
+          fi
+
+      - name: Create source, PKGBUILD and SPDX artifacts
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          git archive --format=tar --prefix="TranslUnix-${VERSION}/" HEAD \
+            | xz -T0 -9 > "dist/TranslUnix-${VERSION}-source.tar.xz"
+          source_hash="$(sha256sum "dist/TranslUnix-${VERSION}-source.tar.xz" | cut -d' ' -f1)"
+          sed -e "s/@VERSION@/${VERSION}/g" -e "s/@SOURCE_SHA256@/${source_hash}/g" \
+            packaging/arch/PKGBUILD.in > dist/PKGBUILD
+          packaging/scripts/generate-sbom.sh "$VERSION" > "dist/TranslUnix-${VERSION}.spdx"
+          grep -Fq "sha256sums=('${source_hash}')" dist/PKGBUILD
+
+      - name: Upload portable artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: TranslUnix-portable-${{ needs.prepare.outputs.version }}
+          path: dist/*
+          if-no-files-found: error
+
+  rpm:
+    name: Fedora 44 RPM
+    needs: prepare
+    runs-on: ubuntu-24.04
+    container: fedora:44
+    timeout-minutes: 35
+
+    steps:
+      - name: Install Fedora build dependencies
+        run: |
+          dnf install --setopt=install_weak_deps=False -y \
+            cmake gcc-c++ git-core ninja-build rpm-build \
+            qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel qtkeychain-qt6-devel
+
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Configure, build and test
+        run: |
+          cmake -S . -B build-rpm -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DTRANSLUNIX_BUILD_TESTS=ON \
+            -DTRANSLUNIX_REQUIRE_KEYCHAIN=ON
+          cmake --build build-rpm --parallel 2
+          ctest --test-dir build-rpm --output-on-failure
+
+      - name: Build and verify Fedora RPM
+        run: |
+          mkdir -p dist package-output
+          cpack --config build-rpm/CPackConfig.cmake -G RPM -B package-output
+          cp package-output/*.rpm dist/
+          rpm_file="$(find dist -maxdepth 1 -type f -name '*.rpm' -print -quit)"
+          test -n "${rpm_file}"
+          rpm -qpl "${rpm_file}"
+          rpm -qpR "${rpm_file}" | sort | tee /tmp/translunix-rpm-requires.txt
+          grep -q 'libqt6keychain\.so\.1' /tmp/translunix-rpm-requires.txt
+          dnf install --setopt=install_weak_deps=False -y "${rpm_file}"
+          rpm -q translunix
+          rpm -V translunix
+          ldd /usr/bin/translunix | tee /tmp/translunix-rpm-ldd.txt
+          ! grep -q 'not found' /tmp/translunix-rpm-ldd.txt
+
+      - name: Upload Fedora RPM
+        uses: actions/upload-artifact@v7
+        with:
+          name: TranslUnix-rpm-${{ needs.prepare.outputs.version }}
+          path: dist/*.rpm
+          if-no-files-found: error
+
+  arch:
+    name: Arch Linux package
+    needs: [prepare, portable]
+    runs-on: ubuntu-24.04
+    container: archlinux:base-devel
+    timeout-minutes: 40
+
+    steps:
+      - name: Install Arch build dependencies
+        run: |
+          pacman -Syu --noconfirm --needed \
+            cmake git ninja qt6-base qt6-svg qt6-tools qtkeychain-qt6
+          sed -i '/^NoExtract[[:space:]]*=.*usr\/share\/doc/d' /etc/pacman.conf
+
+      - name: Download source and PKGBUILD
+        uses: actions/download-artifact@v8
+        with:
+          name: TranslUnix-portable-${{ needs.prepare.outputs.version }}
+          path: dist-portable
+
+      - name: Build package as an unprivileged user
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          install -d -m 0755 /tmp/translunix-package dist
+          cp dist-portable/PKGBUILD \
+            "dist-portable/TranslUnix-${VERSION}-source.tar.xz" \
+            /tmp/translunix-package/
+          useradd --create-home builder
+          chown -R builder:builder /tmp/translunix-package
+          runuser -u builder -- bash -lc \
+            'cd /tmp/translunix-package && LC_ALL=C makepkg --cleanbuild --noconfirm'
+          cp "/tmp/translunix-package/translunix-${VERSION}-1-x86_64.pkg.tar.zst" dist/
+
+      - name: Verify and install Arch package
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          package_file="dist/translunix-${VERSION}-1-x86_64.pkg.tar.zst"
+          test -f "${package_file}"
+          pacman -Qip "${package_file}"
+          pacman -Qlp "${package_file}" | tee /tmp/translunix-arch-files.txt
+          grep -q 'usr/bin/translunix$' /tmp/translunix-arch-files.txt
+          pacman -U --noconfirm "${package_file}"
+          pacman -Q translunix
+          pacman -Qkk translunix
+          ldd /usr/bin/translunix | tee /tmp/translunix-arch-ldd.txt
+          ! grep -q 'not found' /tmp/translunix-arch-ldd.txt
+
+      - name: Upload Arch package
+        uses: actions/upload-artifact@v7
+        with:
+          name: TranslUnix-arch-${{ needs.prepare.outputs.version }}
+          path: dist/*.pkg.tar.zst
+          if-no-files-found: error
+
+  publish:
+    name: Verify and publish release
+    needs: [prepare, portable, rpm, arch]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Download portable artifacts
+        uses: actions/download-artifact@v8
+        with:
+          name: TranslUnix-portable-${{ needs.prepare.outputs.version }}
+          path: dist
+
+      - name: Download Fedora RPM
+        uses: actions/download-artifact@v8
+        with:
+          name: TranslUnix-rpm-${{ needs.prepare.outputs.version }}
+          path: dist
+
+      - name: Download Arch package
+        uses: actions/download-artifact@v8
+        with:
+          name: TranslUnix-arch-${{ needs.prepare.outputs.version }}
+          path: dist
+
+      - name: Verify artifact set and create checksums
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        shell: bash
+        run: |
+          shopt -s nullglob
+          deb=(dist/translunix_"${VERSION}"_*.deb)
+          rpm=(dist/translunix-"${VERSION}"-*.x86_64.rpm)
+          arch=(dist/translunix-"${VERSION}"-1-x86_64.pkg.tar.zst)
+          tree=(dist/TranslUnix-"${VERSION}"-x86_64.tar.xz)
+          source=(dist/TranslUnix-"${VERSION}"-source.tar.xz)
+          spdx=(dist/TranslUnix-"${VERSION}".spdx)
+          pkgbuild=(dist/PKGBUILD)
+          test "${#deb[@]}" -eq 1
+          test "${#rpm[@]}" -eq 1
+          test "${#arch[@]}" -eq 1
+          test "${#tree[@]}" -eq 1
+          test "${#source[@]}" -eq 1
+          test "${#spdx[@]}" -eq 1
+          test "${#pkgbuild[@]}" -eq 1
+          test "$(find dist -maxdepth 1 -type f | wc -l)" -eq 7
+          if find dist -maxdepth 1 -type f -iname '*AppImage*' | grep -q .; then
+            echo "Unexpected AppImage artifact" >&2
+            exit 1
+          fi
+          if tar -tJf "${source[0]}" | grep -Eq '(^|/)(\.env[^/]*|id_rsa|id_ed25519|[^/]*AppImage[^/]*)$'; then
+            echo "Source archive contains a forbidden file" >&2
+            exit 1
+          fi
+          source_hash="$(sha256sum "${source[0]}" | cut -d' ' -f1)"
+          grep -Fq "sha256sums=('${source_hash}')" "${pkgbuild[0]}"
+          grep -Fq "PackageVersion: ${VERSION}" "${spdx[0]}"
+          cd dist
+          find . -maxdepth 1 -type f ! -name SHA256SUMS -printf '%f\0' \
+            | sort --zero-terminated \
+            | xargs --null --no-run-if-empty sha256sum > SHA256SUMS
+          sha256sum --check SHA256SUMS
+
+      - name: Attest release artifacts
+        uses: actions/attest-build-provenance@v4
+        with:
+          subject-path: dist/*
+
+      - name: Upload verified release set
+        uses: actions/upload-artifact@v7
+        with:
+          name: TranslUnix-${{ needs.prepare.outputs.version }}
+          path: dist/*
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        if: >-
+          github.ref_type == 'tag' ||
+          (github.ref_name == 'main' && startsWith(github.event.head_commit.message, 'release:'))
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}', needs.prepare.outputs.version) }}
+          target_commitish: ${{ github.sha }}
+          name: TranslUnix ${{ needs.prepare.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          generate_release_notes: false
+          fail_on_unmatched_files: true
+          files: dist/*

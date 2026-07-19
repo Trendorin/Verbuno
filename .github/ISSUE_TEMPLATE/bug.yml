@@ -1,0 +1,44 @@
+name: Bug report
+description: Report a reproducible TranslUnix defect
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Remove API keys and private translation text before submitting.
+  - type: input
+    id: version
+    attributes:
+      label: TranslUnix version
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Distribution and desktop session
+      placeholder: Fedora 44, KDE Plasma, Wayland
+    validations:
+      required: true
+  - type: dropdown
+    id: package
+    attributes:
+      label: Installation format
+      options: [RPM, DEB, Arch package, Source build]
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction steps
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Sanitized provider or model context

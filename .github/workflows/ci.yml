@@ -1,0 +1,207 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "agent/**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Ubuntu build, test and packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            appstream build-essential cmake desktop-file-utils ninja-build \
+            qt6-base-dev qt6-svg-dev qt6-tools-dev qtkeychain-qt6-dev
+
+      - name: Scan tracked files for credential material
+        shell: bash
+        run: |
+          if git grep -nEI -- \
+            'BEGIN (RSA|OPENSSH|EC|DSA) PRIVATE KEY|AKIA[0-9A-Z]{16}|sk-or-v1-[A-Za-z0-9_-]{20,}' \
+            -- ':!*.md'; then
+            echo "Potential credential material found" >&2
+            exit 1
+          fi
+
+      - name: Configure
+        run: >-
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo
+          -DCMAKE_INSTALL_PREFIX=/usr
+          -DTRANSLUNIX_BUILD_TESTS=ON
+          -DTRANSLUNIX_REQUIRE_KEYCHAIN=ON
+
+      - name: Build
+        run: cmake --build build --parallel 2
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
+      - name: Validate desktop metadata
+        run: |
+          desktop-file-validate data/io.github.trendorin.TranslUnix.desktop
+          appstreamcli validate --no-net data/io.github.trendorin.TranslUnix.metainfo.xml
+
+      - name: Build and install Ubuntu packages
+        run: |
+          mkdir -p package-output
+          cpack --config build/CPackConfig.cmake -G DEB -B package-output
+          cpack --config build/CPackConfig.cmake -G TXZ -B package-output
+          deb_file="$(find package-output -maxdepth 1 -type f -name '*.deb' -print -quit)"
+          tree_file="$(find package-output -maxdepth 1 -type f -name '*.tar.xz' -print -quit)"
+          test -n "${deb_file}"
+          test -n "${tree_file}"
+          deb_file="$(realpath "${deb_file}")"
+          dpkg-deb --info "${deb_file}"
+          dpkg-deb --contents "${deb_file}"
+          sudo apt-get install --no-install-recommends -y "${deb_file}"
+          dpkg-query --show --showformat='${Package} ${Version}\n' translunix
+          dpkg --verify translunix
+          ldd /usr/bin/translunix | tee /tmp/translunix-deb-ldd.txt
+          ! grep -q 'not found' /tmp/translunix-deb-ldd.txt
+          tar -tJf "${tree_file}" | tee /tmp/translunix-tree.txt
+          grep -Eq '(^|/)bin/translunix$' /tmp/translunix-tree.txt
+
+  fedora-rpm:
+    name: Fedora 44 RPM install test
+    runs-on: ubuntu-24.04
+    container: fedora:44
+    timeout-minutes: 30
+
+    steps:
+      - name: Install Fedora build dependencies
+        run: |
+          dnf install --setopt=install_weak_deps=False -y \
+            appstream cmake desktop-file-utils gcc-c++ git-core ninja-build rpm-build \
+            qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel qtkeychain-qt6-devel
+
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Configure, build and test
+        run: |
+          cmake -S . -B build-fedora -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCMAKE_INSTALL_PREFIX=/usr \
+            -DTRANSLUNIX_BUILD_TESTS=ON \
+            -DTRANSLUNIX_REQUIRE_KEYCHAIN=ON
+          cmake --build build-fedora --parallel 2
+          ctest --test-dir build-fedora --output-on-failure
+          desktop-file-validate data/io.github.trendorin.TranslUnix.desktop
+          appstreamcli validate --no-net data/io.github.trendorin.TranslUnix.metainfo.xml
+
+      - name: Build and install RPM
+        run: |
+          mkdir -p package-output
+          cpack --config build-fedora/CPackConfig.cmake -G RPM -B package-output
+          rpm_file="$(find package-output -maxdepth 1 -type f -name '*.rpm' -print -quit)"
+          test -n "${rpm_file}"
+          rpm -qpl "${rpm_file}"
+          rpm -qpR "${rpm_file}" | sort | tee /tmp/translunix-rpm-requires.txt
+          grep -q 'libqt6keychain\.so\.1' /tmp/translunix-rpm-requires.txt
+          dnf install --setopt=install_weak_deps=False -y "${rpm_file}"
+          rpm -q translunix
+          rpm -V translunix
+          ldd /usr/bin/translunix | tee /tmp/translunix-rpm-ldd.txt
+          ! grep -q 'not found' /tmp/translunix-rpm-ldd.txt
+
+  arch-package:
+    name: Arch Linux package install test
+    runs-on: ubuntu-24.04
+    container: archlinux:base-devel
+    timeout-minutes: 35
+
+    steps:
+      - name: Install Arch build dependencies
+        run: |
+          pacman -Syu --noconfirm --needed \
+            cmake git ninja qt6-base qt6-svg qt6-tools qtkeychain-qt6
+          sed -i '/^NoExtract[[:space:]]*=.*usr\/share\/doc/d' /etc/pacman.conf
+
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Create source and PKGBUILD
+        shell: bash
+        run: |
+          version="$(awk '$1 == "VERSION" { print $2; exit }' CMakeLists.txt)"
+          test -n "${version}"
+          install -d -m 0755 /tmp/translunix-package
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          git archive --format=tar --prefix="TranslUnix-${version}/" HEAD \
+            | xz -T0 -9 > "/tmp/translunix-package/TranslUnix-${version}-source.tar.xz"
+          source_hash="$(sha256sum "/tmp/translunix-package/TranslUnix-${version}-source.tar.xz" | cut -d' ' -f1)"
+          sed -e "s/@VERSION@/${version}/g" -e "s/@SOURCE_SHA256@/${source_hash}/g" \
+            packaging/arch/PKGBUILD.in > /tmp/translunix-package/PKGBUILD
+          echo "VERSION=${version}" >> "$GITHUB_ENV"
+
+      - name: Build package as an unprivileged user
+        run: |
+          useradd --create-home builder
+          chown -R builder:builder /tmp/translunix-package
+          runuser -u builder -- bash -lc \
+            'cd /tmp/translunix-package && LC_ALL=C makepkg --cleanbuild --noconfirm'
+
+      - name: Verify and install Arch package
+        run: |
+          package_file="/tmp/translunix-package/translunix-${VERSION}-1-x86_64.pkg.tar.zst"
+          test -f "${package_file}"
+          test "$(find /tmp/translunix-package -maxdepth 1 -type f -name '*.pkg.tar.zst' | wc -l)" -eq 1
+          pacman -Qip "${package_file}"
+          pacman -Qlp "${package_file}" | tee /tmp/translunix-package-files.txt
+          grep -q 'usr/bin/translunix$' /tmp/translunix-package-files.txt
+          pacman -U --noconfirm "${package_file}"
+          pacman -Q translunix
+          pacman -Qkk translunix
+          ldd /usr/bin/translunix | tee /tmp/translunix-arch-ldd.txt
+          ! grep -q 'not found' /tmp/translunix-arch-ldd.txt
+
+  sanitizers:
+    name: ASan and UBSan
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y \
+            build-essential cmake ninja-build qt6-base-dev qt6-svg-dev qt6-tools-dev \
+            qtkeychain-qt6-dev
+
+      - name: Configure and build
+        run: |
+          cmake -S . -B build-asan -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DTRANSLUNIX_BUILD_TESTS=ON \
+            -DTRANSLUNIX_ENABLE_SANITIZERS=ON \
+            -DTRANSLUNIX_REQUIRE_KEYCHAIN=ON
+          cmake --build build-asan --parallel 2
+
+      - name: Test
+        env:
+          ASAN_OPTIONS: detect_leaks=1:strict_string_checks=1:check_initialization_order=1
+          UBSAN_OPTIONS: print_stacktrace=1:halt_on_error=1
+        run: ctest --test-dir build-asan --output-on-failure

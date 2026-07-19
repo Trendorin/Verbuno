@@ -1,0 +1,34 @@
+#pragma once
+
+#include <QHash>
+#include <QObject>
+#include <QString>
+
+namespace translunix {
+
+class SecretStore final : public QObject {
+    Q_OBJECT
+
+public:
+    explicit SecretStore(QObject* parent = nullptr);
+    ~SecretStore() override;
+
+    void readSecret(const QString& account, bool allowPersistentRead);
+    void storeSecret(const QString& account, const QString& secret, bool persist);
+    void deleteSecret(const QString& account);
+
+    [[nodiscard]] bool hasSessionSecret(const QString& account) const;
+    [[nodiscard]] bool secureStorageCompiled() const;
+
+signals:
+    void secretRead(const QString& account, const QString& secret, const QString& error);
+    void secretStored(const QString& account, bool persistent, const QString& error);
+    void secretDeleted(const QString& account, const QString& error);
+
+private:
+    void eraseSessionSecret(const QString& account);
+
+    QHash<QString, QString> m_sessionSecrets;
+};
+
+} // namespace translunix
