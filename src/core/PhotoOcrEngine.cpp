@@ -283,7 +283,8 @@ RecognitionPass recognizePass(tesseract::TessBaseAPI& api,
 
     api.Clear();
     api.SetPageSegMode(pageSegmentationMode(layout));
-    api.SetImage(image.constBits(), image.width(), image.height(), 1, image.bytesPerLine());
+    api.SetImage(image.constBits(), image.width(), image.height(), 1,
+                 static_cast<int>(image.bytesPerLine()));
     api.SetSourceResolution(300);
     if (api.Recognize(nullptr) != 0) {
         return pass;
