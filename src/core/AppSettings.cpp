@@ -15,7 +15,7 @@ constexpr auto kOpenRouterModels = "https://openrouter.ai/api/v1/models";
 constexpr auto kDefaultModel = "openrouter/free";
 constexpr auto kLegacyMigration = "migration/translunix-0.1";
 constexpr auto kStorageSchema = "storage/schemaVersion";
-constexpr int kCurrentStorageSchema = 1;
+constexpr int kCurrentStorageSchema = 2;
 } // namespace
 
 AppSettings::AppSettings(QObject* parent)
@@ -37,6 +37,13 @@ AppSettings::AppSettings(QObject* parent)
         // Earlier releases silently defaulted to session-only keys. The new persistent choice
         // changes only the next explicit key save; it never copies a secret into normal settings.
         m_settings.setValue(QStringLiteral("privacy/rememberApiKey"), true);
+    }
+    if (previousStorageSchema < 2 &&
+        !m_settings.contains(QStringLiteral("provider/preferFastProviders"))) {
+        m_settings.setValue(
+            QStringLiteral("provider/preferFastProviders"),
+            m_settings.value(QStringLiteral("provider/preferThroughput"), true));
+        m_settings.remove(QStringLiteral("provider/preferThroughput"));
     }
     m_settings.setValue(QString::fromLatin1(kStorageSchema), kCurrentStorageSchema);
     sync();
@@ -60,8 +67,8 @@ ProviderSettings AppSettings::provider() const {
         m_settings.value(QStringLiteral("privacy/denyDataCollection"), true).toBool();
     value.zeroDataRetention =
         m_settings.value(QStringLiteral("privacy/zeroDataRetention"), false).toBool();
-    value.preferThroughput =
-        m_settings.value(QStringLiteral("provider/preferThroughput"), true).toBool();
+    value.preferFastProviders =
+        m_settings.value(QStringLiteral("provider/preferFastProviders"), true).toBool();
     return value;
 }
 
@@ -77,7 +84,8 @@ void AppSettings::setProvider(const ProviderSettings& provider) {
                         provider.denyDataCollection);
     m_settings.setValue(QStringLiteral("privacy/zeroDataRetention"),
                         provider.zeroDataRetention);
-    m_settings.setValue(QStringLiteral("provider/preferThroughput"), provider.preferThroughput);
+    m_settings.setValue(QStringLiteral("provider/preferFastProviders"),
+                        provider.preferFastProviders);
     sync();
 }
 
@@ -248,6 +256,7 @@ void AppSettings::resetProvider() {
                               QStringLiteral("provider/modelsEndpoint"),
                               QStringLiteral("provider/model"),
                               QStringLiteral("provider/openRouter"),
+                              QStringLiteral("provider/preferFastProviders"),
                               QStringLiteral("provider/preferThroughput"),
                               QStringLiteral("privacy/denyDataCollection"),
                               QStringLiteral("privacy/zeroDataRetention")};

@@ -1,19 +1,20 @@
-# Verbuno 0.3.1
+# Verbuno 0.3.2
 
-This maintenance release makes the selected interface language, provider, exact model and other non-secret preferences survive every application restart, and makes secure API-key reuse the default.
+This maintenance release prevents slow or unavailable inference endpoints from leaving Verbuno in the connecting state indefinitely and improves OpenRouter route selection without relaxing privacy controls.
 
 ## Highlights
 
-- newly entered API keys are remembered through KWallet or Secret Service by default and are automatically reused after restart;
-- session-only key handling remains available by explicitly disabling persistent storage;
-- the settings window confirms whether a reusable key is available without displaying the secret;
-- secure key writes finish before the settings window closes, so wallet failures remain visible and recoverable;
-- non-secret settings are synchronized after every change to the stable `Trendorin/Verbuno` settings file;
-- the settings file is restricted to owner read/write permissions and symbolic-link targets are refused;
-- the General page displays the exact local settings path and any access or format error;
-- restart-level tests cover interface language, provider model, source and target languages, translation style, API-key storage preference and OCR options.
+- `openrouter/free` and exact `:free` models get one automatic second route when no model activity starts within a deadline beginning at 12 seconds, with extra allowance for long input;
+- OpenRouter processing comments are treated only as status updates and cannot reset the first-token deadline;
+- exact and custom models fail clearly after a bounded first-token wait instead of appearing frozen;
+- a stream that stops producing text or reasoning activity is cancelled after 30 seconds, while already received text stays visible;
+- streamed `reasoning` and `reasoning_details` chunks count as active work and receive a dedicated interface status;
+- saved-key lookup has its own visible stage and an eight-second deadline, so a locked KWallet cannot leave the application waiting silently;
+- OpenRouter routing now prefers low p90 latency and useful p50 throughput while retaining normal uptime-aware balancing and provider fallbacks;
+- `data_collection: deny`, optional ZDR, redirect refusal and all existing credential protections remain unchanged;
+- integration tests simulate SSE keep-alives, reasoning activity and a stalled partial response.
 
-API keys are still never written to `QSettings`, history or logs. Persistent keys remain in the encrypted desktop credential service through QtKeychain, whose plaintext fallback is disabled. Photo OCR remains entirely local; only explicitly translated text reaches the selected provider.
+Free endpoints can still be rate-limited, temporarily unavailable or slow at peak times. Verbuno now bounds that wait and reports it accurately; it cannot make an external model available. For the most consistent response time, select an exact fast model instead of the random `openrouter/free` router.
 
 ## Release files
 
@@ -32,4 +33,4 @@ Every binary package is built and installed in its native target before publicat
 sha256sum --ignore-missing --check SHA256SUMS
 ```
 
-Translation text is sent to the configured external provider. The displayed upstream route is response metadata, not a privacy guarantee. Review OpenRouter and the selected inference provider's current retention and training policies before submitting sensitive text.
+Translation text is sent to the configured external provider. Automatic retry is limited to the same explicitly requested free route and uses the same privacy restrictions. Review OpenRouter and the selected inference provider's current retention and training policies before submitting sensitive text.

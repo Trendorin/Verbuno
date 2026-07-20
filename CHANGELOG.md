@@ -2,6 +2,21 @@
 
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use semantic versioning.
 
+## [0.3.2] - 2026-07-21
+
+### Fixed
+
+- OpenRouter processing comments can no longer keep a request stuck in the connecting state indefinitely.
+- A response that stops mid-stream is aborted after a bounded idle period while already received translation text remains visible.
+- Reasoning-token chunks count as real model activity, so an active reasoning model is not mistaken for a dead connection.
+- A locked or unavailable desktop keychain now fails clearly after eight seconds instead of blocking the translation before its network request begins.
+
+### Changed
+
+- `openrouter/free` and explicit `:free` routes receive one automatic retry when no model activity begins within a deadline that starts at 12 seconds and scales for long input.
+- The faster-provider option now uses non-blocking latency and throughput preferences instead of throughput sorting, preserving OpenRouter's uptime-aware load balancing and fallbacks.
+- Model catalog requests and generic provider transfers now have explicit bounded timeouts and localized status/error messages.
+
 ## [0.3.1] - 2026-07-20
 
 ### Fixed
@@ -78,6 +93,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - DEB, RPM, Arch, TXZ, source, SPDX, PKGBUILD and SHA-256 release artifacts.
 - Ubuntu, Fedora, Arch, sanitizer and CodeQL validation.
 
+[0.3.2]: https://github.com/Trendorin/Verbuno/releases/tag/v0.3.2
 [0.3.1]: https://github.com/Trendorin/Verbuno/releases/tag/v0.3.1
 [0.2.0]: https://github.com/Trendorin/Verbuno/releases/tag/v0.2.0
 [0.3.0]: https://github.com/Trendorin/Verbuno/releases/tag/v0.3.0

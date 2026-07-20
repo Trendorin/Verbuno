@@ -6,19 +6,113 @@
 #include "core/PhotoOcrEngine.h"
 #include "core/PromptBuilder.h"
 #include "core/ProviderClient.h"
+#include "core/SecretStore.h"
 #include "core/SseDecoder.h"
 
 #include <QFileInfo>
 #include <QFont>
+#include <QElapsedTimer>
+#include <QHostAddress>
 #include <QImage>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QPainter>
 #include <QSet>
 #include <QSettings>
 #include <QSignalSpy>
+#include <QTcpServer>
+#include <QTcpSocket>
 #include <QTemporaryDir>
 #include <QTest>
 
 using namespace verbuno;
+
+namespace {
+
+class StallingSseServer final : public QTcpServer {
+public:
+    explicit StallingSseServer(bool sendContent,
+                               bool sendReasoning = false,
+                               QObject* parent = nullptr)
+        : QTcpServer(parent)
+        , m_sendContent(sendContent)
+        , m_sendReasoning(sendReasoning) {
+        connect(this, &QTcpServer::newConnection, this, [this] {
+            while (hasPendingConnections()) {
+                QTcpSocket* socket = nextPendingConnection();
+                ++m_connectionCount;
+                connect(socket, &QTcpSocket::readyRead, socket,
+                        [this, socket, request = QByteArray{}, responded = false]() mutable {
+                            request.append(socket->readAll());
+                            if (responded || !request.contains(QByteArrayLiteral("\r\n\r\n"))) {
+                                return;
+                            }
+                            responded = true;
+                            socket->write(QByteArrayLiteral(
+                                "HTTP/1.1 200 OK\r\n"
+                                "Content-Type: text/event-stream\r\n"
+                                "Cache-Control: no-cache\r\n"
+                                "Connection: keep-alive\r\n\r\n"
+                                ": OPENROUTER PROCESSING\n\n"));
+                            if (m_sendContent) {
+                                socket->write(QByteArrayLiteral(
+                                    "data: {\"model\":\"test/fast\",\"provider\":\"Test "
+                                    "Provider\",\"choices\":[{\"delta\":{\"content\":\"Hallo\"}}]}\n\n"));
+                            }
+                            if (m_sendReasoning) {
+                                socket->write(QByteArrayLiteral(
+                                    "data: {\"model\":\"test/reasoning\",\"choices\":[{\"delta\":{\"reasoning\":\"Working\"}}]}\n\n"));
+                            }
+                            socket->flush();
+                        });
+            }
+        });
+    }
+
+    bool start() {
+        return listen(QHostAddress::LocalHost, 0);
+    }
+
+    [[nodiscard]] QUrl endpoint() const {
+        return QUrl(QStringLiteral("http://127.0.0.1:%1/v1/chat/completions")
+                        .arg(serverPort()));
+    }
+
+    [[nodiscard]] int connectionCount() const {
+        return m_connectionCount;
+    }
+
+private:
+    bool m_sendContent = false;
+    bool m_sendReasoning = false;
+    int m_connectionCount = 0;
+};
+
+TranslationRequest localTestRequest(const QUrl& endpoint) {
+    TranslationRequest request;
+    request.input = QStringLiteral("hello");
+    request.sourceCode = QStringLiteral("en");
+    request.sourceName = QStringLiteral("English");
+    request.targetCode = QStringLiteral("de");
+    request.targetName = QStringLiteral("German");
+    request.provider.displayName = QStringLiteral("Test provider");
+    request.provider.chatEndpoint = endpoint;
+    request.provider.model = QStringLiteral("test/model");
+    request.provider.openRouter = false;
+    return request;
+}
+
+ProviderTimeouts shortTimeouts() {
+    ProviderTimeouts timeouts;
+    timeouts.firstTokenMs = 600;
+    timeouts.freeRouteFirstTokenMs = 600;
+    timeouts.streamIdleMs = 600;
+    timeouts.transferMs = 5000;
+    timeouts.modelCatalogMs = 1000;
+    return timeouts;
+}
+
+} // namespace
 
 class CoreTests final : public QObject {
     Q_OBJECT
@@ -29,6 +123,11 @@ private slots:
     void exposesBroadUniqueLanguageCatalog();
     void decodesFragmentedSseEvents();
     void extractsActualOpenRouterRoute();
+    void buildsFastPrivateOpenRouterRequest();
+    void keepAliveCannotDefeatFirstTokenTimeout();
+    void reasoningCountsAsModelActivity();
+    void stalledStreamEndsAfterIdleTimeout();
+    void sessionSecretIsImmediatelyReusable();
     void historyIsOptInAndOwnerOnly();
     void settingsSurviveRestartAndStayOwnerOnly();
     void normalizesSupportedInterfaceLanguages();
@@ -120,6 +219,115 @@ void CoreTests::extractsActualOpenRouterRoute() {
     const InferenceRoute route = ProviderClient::parseInferenceRoute(payload);
     QCOMPARE(route.provider, QStringLiteral("Chutes"));
     QCOMPARE(route.model, QStringLiteral("qwen/qwen3-30b-a3b-instruct-2507"));
+
+    const InferenceRoute directRoute = ProviderClient::parseInferenceRoute(
+        QByteArrayLiteral(R"json({"model":"openai/gpt-test","provider":"OpenAI"})json"));
+    QCOMPARE(directRoute.provider, QStringLiteral("OpenAI"));
+    QCOMPARE(directRoute.model, QStringLiteral("openai/gpt-test"));
+}
+
+void CoreTests::buildsFastPrivateOpenRouterRequest() {
+    TranslationRequest request;
+    request.input = QStringLiteral("hello");
+    request.sourceCode = QStringLiteral("en");
+    request.sourceName = QStringLiteral("English");
+    request.targetCode = QStringLiteral("de");
+    request.targetName = QStringLiteral("German");
+    request.provider.model = QStringLiteral("openrouter/free");
+    request.provider.denyDataCollection = true;
+    request.provider.zeroDataRetention = true;
+    request.provider.preferFastProviders = true;
+
+    const QJsonDocument document =
+        QJsonDocument::fromJson(ProviderClient::buildRequestPayload(request));
+    QVERIFY(document.isObject());
+    const QJsonObject root = document.object();
+    QCOMPARE(root.value(QStringLiteral("model")).toString(), QStringLiteral("openrouter/free"));
+    QVERIFY(root.value(QStringLiteral("stream")).toBool());
+
+    const QJsonObject routing = root.value(QStringLiteral("provider")).toObject();
+    QVERIFY(routing.value(QStringLiteral("allow_fallbacks")).toBool());
+    QCOMPARE(routing.value(QStringLiteral("data_collection")).toString(),
+             QStringLiteral("deny"));
+    QVERIFY(routing.value(QStringLiteral("zdr")).toBool());
+    QVERIFY(!routing.contains(QStringLiteral("sort")));
+    QCOMPARE(routing.value(QStringLiteral("preferred_max_latency"))
+                 .toObject()
+                 .value(QStringLiteral("p90"))
+                 .toInt(),
+             8);
+    QCOMPARE(routing.value(QStringLiteral("preferred_min_throughput"))
+                 .toObject()
+                 .value(QStringLiteral("p50"))
+                 .toInt(),
+             20);
+}
+
+void CoreTests::keepAliveCannotDefeatFirstTokenTimeout() {
+    StallingSseServer server(false);
+    QVERIFY(server.start());
+    ProviderClient client(shortTimeouts(), nullptr);
+    QSignalSpy failureSpy(&client, &ProviderClient::requestFailed);
+    QSignalSpy chunkSpy(&client, &ProviderClient::translationChunk);
+    QElapsedTimer elapsed;
+    elapsed.start();
+
+    client.translate(localTestRequest(server.endpoint()), QStringLiteral("test-api-key"));
+
+    QTRY_COMPARE_WITH_TIMEOUT(failureSpy.size(), 1, 5000);
+    QCOMPARE(server.connectionCount(), 1);
+    QCOMPARE(chunkSpy.size(), 0);
+    QVERIFY(elapsed.elapsed() < 4000);
+    QVERIFY(failureSpy.takeFirst().first().toString().contains(
+        QStringLiteral("did not start responding")));
+}
+
+void CoreTests::reasoningCountsAsModelActivity() {
+    StallingSseServer server(false, true);
+    QVERIFY(server.start());
+    ProviderClient client(shortTimeouts(), nullptr);
+    QSignalSpy processingSpy(&client, &ProviderClient::modelProcessing);
+    QSignalSpy failureSpy(&client, &ProviderClient::requestFailed);
+
+    client.translate(localTestRequest(server.endpoint()), QStringLiteral("test-api-key"));
+
+    QTRY_COMPARE_WITH_TIMEOUT(processingSpy.size(), 1, 3000);
+    QTRY_COMPARE_WITH_TIMEOUT(failureSpy.size(), 1, 5000);
+    const QString error = failureSpy.takeFirst().first().toString();
+    QVERIFY(error.contains(QStringLiteral("stopped responding")));
+    QVERIFY(!error.contains(QStringLiteral("did not start responding")));
+}
+
+void CoreTests::stalledStreamEndsAfterIdleTimeout() {
+    StallingSseServer server(true);
+    QVERIFY(server.start());
+    ProviderClient client(shortTimeouts(), nullptr);
+    QSignalSpy failureSpy(&client, &ProviderClient::requestFailed);
+    QSignalSpy chunkSpy(&client, &ProviderClient::translationChunk);
+
+    client.translate(localTestRequest(server.endpoint()), QStringLiteral("test-api-key"));
+
+    QTRY_COMPARE_WITH_TIMEOUT(chunkSpy.size(), 1, 3000);
+    QCOMPARE(chunkSpy.first().first().toString(), QStringLiteral("Hallo"));
+    QTRY_COMPARE_WITH_TIMEOUT(failureSpy.size(), 1, 5000);
+    QVERIFY(failureSpy.takeFirst().first().toString().contains(
+        QStringLiteral("stopped responding")));
+}
+
+void CoreTests::sessionSecretIsImmediatelyReusable() {
+    SecretStore store;
+    QSignalSpy storedSpy(&store, &SecretStore::secretStored);
+    store.storeSecret(QStringLiteral("test-account"), QStringLiteral("test-secret-value"),
+                      false);
+    QTRY_COMPARE_WITH_TIMEOUT(storedSpy.size(), 1, 1000);
+
+    QSignalSpy readSpy(&store, &SecretStore::secretRead);
+    store.readSecret(QStringLiteral("test-account"), false);
+    QTRY_COMPARE_WITH_TIMEOUT(readSpy.size(), 1, 1000);
+    const QList<QVariant> result = readSpy.takeFirst();
+    QCOMPARE(result.at(0).toString(), QStringLiteral("test-account"));
+    QCOMPARE(result.at(1).toString(), QStringLiteral("test-secret-value"));
+    QVERIFY(result.at(2).toString().isEmpty());
 }
 
 void CoreTests::historyIsOptInAndOwnerOnly() {
@@ -169,6 +377,7 @@ void CoreTests::settingsSurviveRestartAndStayOwnerOnly() {
         ProviderSettings provider = settings.provider();
         provider.model = QStringLiteral("qwen/qwen3-30b-a3b:free");
         provider.denyDataCollection = false;
+        provider.preferFastProviders = false;
         settings.setProvider(provider);
         settings.setInterfaceLanguage(QStringLiteral("de-DE"));
         settings.setLanguagePair(QStringLiteral("ru"), QStringLiteral("ja"));
@@ -193,6 +402,7 @@ void CoreTests::settingsSurviveRestartAndStayOwnerOnly() {
         QVERIFY(reloaded.rememberApiKey());
         QCOMPARE(reloaded.provider().model, QStringLiteral("qwen/qwen3-30b-a3b:free"));
         QVERIFY(!reloaded.provider().denyDataCollection);
+        QVERIFY(!reloaded.provider().preferFastProviders);
         QCOMPARE(reloaded.photoOcrLanguage(), QStringLiteral("rus+eng"));
         QCOMPARE(reloaded.photoOcrLayout(), 2);
     }

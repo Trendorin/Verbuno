@@ -18,6 +18,8 @@ namespace verbuno {
 
 namespace {
 constexpr qsizetype kMaximumBufferedResponse = 4 * 1024 * 1024;
+constexpr int kPreferredP90LatencySeconds = 8;
+constexpr int kPreferredP50Throughput = 20;
 
 QString uiText(const char* source) {
     return QCoreApplication::translate("verbuno::ProviderClient", source);
@@ -34,10 +36,46 @@ bool isZeroPrice(const QJsonValue& value, bool missingIsZero = false) {
     }
     return ok && price == 0.0;
 }
+
+int positiveTimeout(int value) {
+    return std::max(value, 1);
+}
+
+int timeoutSeconds(int milliseconds) {
+    return std::max(1, (milliseconds + 999) / 1000);
+}
+
+bool isRetryableFreeRoute(const QString& model) {
+    const QString normalized = model.trimmed();
+    return normalized.compare(QStringLiteral("openrouter/free"), Qt::CaseInsensitive) == 0 ||
+           normalized.endsWith(QStringLiteral(":free"), Qt::CaseInsensitive);
+}
 } // namespace
 
 ProviderClient::ProviderClient(QObject* parent)
-    : QObject(parent) {
+    : ProviderClient(ProviderTimeouts{}, parent) {
+}
+
+ProviderClient::ProviderClient(const ProviderTimeouts& timeouts, QObject* parent)
+    : QObject(parent)
+    , m_timeouts(timeouts) {
+    m_firstTokenTimer.setSingleShot(true);
+    m_streamIdleTimer.setSingleShot(true);
+    connect(&m_firstTokenTimer, &QTimer::timeout, this,
+            &ProviderClient::handleFirstTokenTimeout);
+    connect(&m_streamIdleTimer, &QTimer::timeout, this,
+            &ProviderClient::handleStreamIdleTimeout);
+}
+
+ProviderClient::~ProviderClient() {
+    m_firstTokenTimer.stop();
+    m_streamIdleTimer.stop();
+    if (m_translationReply) {
+        m_translationReply->disconnect(this);
+        m_translationReply->abort();
+    }
+    m_requestPayload.fill('\0');
+    m_translationApiKey.fill(QChar('\0'));
 }
 
 void ProviderClient::translate(const TranslationRequest& request, const QString& apiKey) {
@@ -68,6 +106,26 @@ void ProviderClient::translate(const TranslationRequest& request, const QString&
     }
     resetTranslationState();
 
+    m_requestPayload = buildRequestPayload(request);
+    m_translationApiKey = apiKey.trimmed();
+    m_translationEndpoint = request.provider.chatEndpoint;
+    m_translationUsesOpenRouter =
+        request.provider.openRouter &&
+        EndpointValidator::isOpenRouter(request.provider.chatEndpoint);
+    m_retryableFreeRoute =
+        m_translationUsesOpenRouter && isRetryableFreeRoute(request.provider.model);
+    const int baseTimeout = m_retryableFreeRoute ? m_timeouts.freeRouteFirstTokenMs
+                                                  : m_timeouts.firstTokenMs;
+    const qsizetype extraSeconds =
+        std::min<qsizetype>(30, request.input.size() / 2000);
+    m_currentFirstTokenTimeoutMs =
+        positiveTimeout(baseTimeout) + static_cast<int>(extraSeconds) * 1000;
+
+    startTranslationAttempt();
+    emit translationStarted();
+}
+
+QByteArray ProviderClient::buildRequestPayload(const TranslationRequest& request) {
     QJsonObject body;
     body.insert(QStringLiteral("model"), request.provider.model.trimmed());
     body.insert(QStringLiteral("stream"), true);
@@ -90,20 +148,32 @@ void ProviderClient::translate(const TranslationRequest& request, const QString&
         if (request.provider.zeroDataRetention) {
             routing.insert(QStringLiteral("zdr"), true);
         }
-        if (request.provider.preferThroughput) {
-            routing.insert(QStringLiteral("sort"), QStringLiteral("throughput"));
+        if (request.provider.preferFastProviders) {
+            routing.insert(QStringLiteral("preferred_max_latency"),
+                           QJsonObject{{QStringLiteral("p90"),
+                                        kPreferredP90LatencySeconds}});
+            routing.insert(QStringLiteral("preferred_min_throughput"),
+                           QJsonObject{{QStringLiteral("p50"),
+                                        kPreferredP50Throughput}});
         }
         body.insert(QStringLiteral("provider"), routing);
     }
 
-    QNetworkRequest networkRequest =
-        makeRequest(request.provider.chatEndpoint, apiKey, QByteArrayLiteral("text/event-stream"));
-    if (request.provider.openRouter &&
-        EndpointValidator::isOpenRouter(request.provider.chatEndpoint)) {
+    return QJsonDocument(body).toJson(QJsonDocument::Compact);
+}
+
+void ProviderClient::startTranslationAttempt() {
+    resetAttemptState();
+    ++m_attempt;
+
+    QNetworkRequest networkRequest = makeRequest(
+        m_translationEndpoint, m_translationApiKey, QByteArrayLiteral("text/event-stream"),
+        std::max(m_timeouts.transferMs, m_currentFirstTokenTimeoutMs + 5000));
+    if (m_translationUsesOpenRouter) {
         networkRequest.setRawHeader(QByteArrayLiteral("X-OpenRouter-Metadata"),
                                     QByteArrayLiteral("enabled"));
     }
-    QNetworkReply* reply = m_network.post(networkRequest, QJsonDocument(body).toJson(QJsonDocument::Compact));
+    QNetworkReply* reply = m_network.post(networkRequest, m_requestPayload);
     m_translationReply = reply;
 
     connect(reply, &QNetworkReply::readyRead, this, [this, reply] {
@@ -115,7 +185,56 @@ void ProviderClient::translate(const TranslationRequest& request, const QString&
         handleTranslationFinished(reply);
         reply->deleteLater();
     });
-    emit translationStarted();
+    m_firstTokenTimer.start(positiveTimeout(m_currentFirstTokenTimeoutMs));
+}
+
+void ProviderClient::retryFreeRoute() {
+    if (!m_translationReply || !m_retryableFreeRoute || m_attempt != 1 ||
+        m_receivedModelActivity) {
+        return;
+    }
+
+    QNetworkReply* slowReply = m_translationReply;
+    m_translationReply.clear();
+    slowReply->disconnect(this);
+    slowReply->abort();
+    slowReply->deleteLater();
+    if (!m_inferenceRoute.isEmpty()) {
+        m_inferenceRoute = {};
+        emit inferenceRouteResolved(m_inferenceRoute);
+    }
+    emit freeRouteRetrying();
+    startTranslationAttempt();
+}
+
+void ProviderClient::handleFirstTokenTimeout() {
+    if (!m_translationReply || m_receivedModelActivity) {
+        return;
+    }
+    if (m_retryableFreeRoute && m_attempt == 1) {
+        retryFreeRoute();
+        return;
+    }
+
+    failTranslation(
+        uiText("The model did not start responding within %1 seconds. Try again or choose a "
+               "faster model.")
+            .arg(timeoutSeconds(m_currentFirstTokenTimeoutMs)),
+        m_translationReply);
+}
+
+void ProviderClient::handleStreamIdleTimeout() {
+    if (!m_translationReply || !m_receivedModelActivity) {
+        return;
+    }
+    const int seconds = timeoutSeconds(m_timeouts.streamIdleMs);
+    const QString message =
+        m_receivedContent
+            ? uiText("The model stopped responding for %1 seconds. The partial translation was "
+                     "kept; try again.")
+                  .arg(seconds)
+            : uiText("The model stopped responding for %1 seconds. Try again.").arg(seconds);
+    failTranslation(message, m_translationReply);
 }
 
 void ProviderClient::fetchFreeModels(const ProviderSettings& provider, const QString& apiKey) {
@@ -139,7 +258,8 @@ void ProviderClient::fetchFreeModels(const ProviderSettings& provider, const QSt
     }
 
     QNetworkRequest request =
-        makeRequest(provider.modelsEndpoint, apiKey, QByteArrayLiteral("application/json"));
+        makeRequest(provider.modelsEndpoint, apiKey, QByteArrayLiteral("application/json"),
+                    m_timeouts.modelCatalogMs);
     QNetworkReply* reply = m_network.get(request);
     m_modelsReply = reply;
     connect(reply, &QNetworkReply::finished, this, [this, reply] {
@@ -153,6 +273,8 @@ void ProviderClient::cancel() {
         return;
     }
     m_cancelled = true;
+    m_firstTokenTimer.stop();
+    m_streamIdleTimer.stop();
     m_translationReply->abort();
 }
 
@@ -162,7 +284,8 @@ bool ProviderClient::isTranslating() const {
 
 QNetworkRequest ProviderClient::makeRequest(const QUrl& endpoint,
                                             const QString& apiKey,
-                                            const QByteArray& accept) const {
+                                            const QByteArray& accept,
+                                            int transferTimeoutMs) const {
     QNetworkRequest request(endpoint);
     request.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
     request.setRawHeader(QByteArrayLiteral("Accept"), accept);
@@ -174,12 +297,17 @@ QNetworkRequest ProviderClient::makeRequest(const QUrl& endpoint,
                          QByteArrayLiteral("Verbuno/") + QByteArrayLiteral(VERBUNO_VERSION));
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
                          QNetworkRequest::ManualRedirectPolicy);
-    request.setTransferTimeout(90000);
+    request.setTransferTimeout(positiveTimeout(transferTimeoutMs));
     return request;
 }
 
 void ProviderClient::handleTranslationData(QNetworkReply* reply) {
     const QByteArray bytes = reply->readAll();
+    if (m_translationUsesOpenRouter && !m_receivedContent && !m_reportedRoutingWait &&
+        bytes.contains(QByteArrayLiteral(": OPENROUTER PROCESSING"))) {
+        m_reportedRoutingWait = true;
+        emit openRouterStillRouting();
+    }
     if (m_rawResponse.size() + bytes.size() <= kMaximumBufferedResponse) {
         m_rawResponse.append(bytes);
     }
@@ -201,6 +329,8 @@ void ProviderClient::handleTranslationFinished(QNetworkReply* reply) {
     for (const QByteArray& event : trailing) {
         processSseEvent(event, reply);
     }
+    m_firstTokenTimer.stop();
+    m_streamIdleTimer.stop();
 
     m_translationReply.clear();
     const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
@@ -276,6 +406,8 @@ void ProviderClient::handleModelsFinished(QNetworkReply* reply) {
 void ProviderClient::processSseEvent(const QByteArray& event, QNetworkReply* reply) {
     if (event.trimmed() == QByteArrayLiteral("[DONE]")) {
         m_receivedDone = true;
+        m_firstTokenTimer.stop();
+        m_streamIdleTimer.stop();
         return;
     }
 
@@ -298,6 +430,17 @@ void ProviderClient::processSseEvent(const QByteArray& event, QNetworkReply* rep
     }
     const QJsonObject choice = choices.first().toObject();
     const QJsonObject delta = choice.value(QStringLiteral("delta")).toObject();
+    const bool hasReasoning =
+        !delta.value(QStringLiteral("reasoning")).toString().isEmpty() ||
+        !delta.value(QStringLiteral("reasoning_content")).toString().isEmpty() ||
+        !delta.value(QStringLiteral("reasoning_details")).toArray().isEmpty();
+    if (hasReasoning) {
+        const bool firstActivity = !m_receivedModelActivity;
+        noteModelActivity();
+        if (firstActivity) {
+            emit modelProcessing();
+        }
+    }
     QString content = delta.value(QStringLiteral("content")).toString();
     if (content.isEmpty()) {
         content = choice.value(QStringLiteral("text")).toString();
@@ -305,10 +448,18 @@ void ProviderClient::processSseEvent(const QByteArray& event, QNetworkReply* rep
     appendContent(content);
 }
 
+void ProviderClient::noteModelActivity() {
+    m_receivedModelActivity = true;
+    m_firstTokenTimer.stop();
+    m_streamIdleTimer.start(positiveTimeout(m_timeouts.streamIdleMs));
+}
+
 void ProviderClient::appendContent(const QString& content) {
     if (content.isEmpty()) {
         return;
     }
+    noteModelActivity();
+    m_receivedContent = true;
     m_accumulated.append(content);
     emit translationChunk(content);
 }
@@ -333,21 +484,41 @@ void ProviderClient::failTranslation(const QString& message, QNetworkReply* repl
         return;
     }
     m_failureEmitted = true;
+    m_firstTokenTimer.stop();
+    m_streamIdleTimer.stop();
     emit requestFailed(sanitizedMessage(message));
     if (reply && reply->isRunning()) {
         reply->abort();
     }
 }
 
-void ProviderClient::resetTranslationState() {
+void ProviderClient::resetAttemptState() {
+    m_firstTokenTimer.stop();
+    m_streamIdleTimer.stop();
     m_decoder.reset();
     m_rawResponse.fill('\0');
     m_rawResponse.clear();
     m_accumulated.clear();
     m_inferenceRoute = {};
+    m_receivedModelActivity = false;
+    m_receivedContent = false;
+    m_reportedRoutingWait = false;
     m_cancelled = false;
     m_receivedDone = false;
     m_failureEmitted = false;
+}
+
+void ProviderClient::resetTranslationState() {
+    resetAttemptState();
+    m_requestPayload.fill('\0');
+    m_requestPayload.clear();
+    m_translationApiKey.fill(QChar('\0'));
+    m_translationApiKey.clear();
+    m_translationEndpoint.clear();
+    m_currentFirstTokenTimeoutMs = 0;
+    m_attempt = 0;
+    m_translationUsesOpenRouter = false;
+    m_retryableFreeRoute = false;
 }
 
 InferenceRoute ProviderClient::parseInferenceRoute(const QByteArray& payload) {
@@ -360,6 +531,7 @@ InferenceRoute ProviderClient::parseInferenceRoute(const QByteArray& payload) {
     const QJsonObject root = document.object();
     InferenceRoute route;
     route.model = root.value(QStringLiteral("model")).toString().simplified().left(256);
+    route.provider = root.value(QStringLiteral("provider")).toString().simplified().left(128);
 
     const QJsonObject metadata = root.value(QStringLiteral("openrouter_metadata")).toObject();
     const QJsonArray available = metadata.value(QStringLiteral("endpoints"))

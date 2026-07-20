@@ -20,6 +20,7 @@ namespace verbuno {
 namespace {
 const QString kService = QStringLiteral("io.github.trendorin.Verbuno");
 const QString kLegacyService = QStringLiteral("io.github.trendorin.TranslUnix");
+constexpr int kKeychainReadTimeoutMs = 8000;
 }
 
 SecretStore::SecretStore(QObject* parent)
@@ -46,12 +47,18 @@ void SecretStore::readSecret(const QString& account, bool allowPersistentRead) {
     }
 
 #if defined(VERBUNO_HAS_KEYCHAIN)
+    const quint64 generation = ++m_nextReadGeneration;
+    m_readGenerations.insert(account, generation);
     auto* job = new QKeychain::ReadPasswordJob(kService, this);
     job->setKey(account);
     job->setInsecureFallback(false);
     connect(job, &QKeychain::Job::finished, this,
-            [this, job, account](QKeychain::Job*) {
+            [this, job, account, generation](QKeychain::Job*) {
+                if (m_readGenerations.value(account) != generation) {
+                    return;
+                }
                 if (job->error() == QKeychain::NoError) {
+                    m_readGenerations.remove(account);
                     const QString secret = job->textData();
                     if (!secret.isEmpty()) {
                         m_sessionSecrets.insert(account, secret);
@@ -60,12 +67,22 @@ void SecretStore::readSecret(const QString& account, bool allowPersistentRead) {
                     return;
                 }
                 if (job->error() == QKeychain::EntryNotFound) {
-                    readLegacySecret(account);
+                    readLegacySecret(account, generation);
                     return;
                 }
+                m_readGenerations.remove(account);
                 emit secretRead(account, {}, job->errorString());
             });
     job->start();
+    QTimer::singleShot(kKeychainReadTimeoutMs, this, [this, account, generation] {
+        if (m_readGenerations.value(account) != generation) {
+            return;
+        }
+        m_readGenerations.remove(account);
+        emit secretRead(
+            account, {},
+            tr("The system keychain did not respond within 8 seconds. Unlock it and try again."));
+    });
 #else
     QTimer::singleShot(0, this, [this, account] {
         emit secretRead(account, {},
@@ -75,8 +92,13 @@ void SecretStore::readSecret(const QString& account, bool allowPersistentRead) {
 }
 
 void SecretStore::storeSecret(const QString& account, const QString& secret, bool persist) {
+    const bool satisfiedPendingRead = m_readGenerations.remove(account) > 0;
     eraseSessionSecret(account);
     m_sessionSecrets.insert(account, secret);
+    if (satisfiedPendingRead) {
+        QTimer::singleShot(0, this,
+                           [this, account, secret] { emit secretRead(account, secret, {}); });
+    }
     if (!persist) {
         QTimer::singleShot(0, this,
                            [this, account] { emit secretStored(account, false, {}); });
@@ -110,7 +132,11 @@ void SecretStore::storeSecret(const QString& account, const QString& secret, boo
 }
 
 void SecretStore::deleteSecret(const QString& account) {
+    const bool endedPendingRead = m_readGenerations.remove(account) > 0;
     eraseSessionSecret(account);
+    if (endedPendingRead) {
+        QTimer::singleShot(0, this, [this, account] { emit secretRead(account, {}, {}); });
+    }
 #if defined(VERBUNO_HAS_KEYCHAIN)
     auto* job = new QKeychain::DeletePasswordJob(kService, this);
     job->setKey(account);
@@ -129,14 +155,18 @@ void SecretStore::deleteSecret(const QString& account) {
 #endif
 }
 
-void SecretStore::readLegacySecret(const QString& account) {
+void SecretStore::readLegacySecret(const QString& account, quint64 generation) {
 #if defined(VERBUNO_HAS_KEYCHAIN)
     auto* job = new QKeychain::ReadPasswordJob(kLegacyService, this);
     job->setKey(account);
     job->setInsecureFallback(false);
     connect(job, &QKeychain::Job::finished, this,
-            [this, job, account](QKeychain::Job*) {
+            [this, job, account, generation](QKeychain::Job*) {
+                if (m_readGenerations.value(account) != generation) {
+                    return;
+                }
                 if (job->error() == QKeychain::NoError) {
+                    m_readGenerations.remove(account);
                     const QString secret = job->textData();
                     if (secret.isEmpty()) {
                         emit secretRead(account, {}, {});
@@ -163,14 +193,17 @@ void SecretStore::readLegacySecret(const QString& account) {
                     return;
                 }
                 if (job->error() == QKeychain::EntryNotFound) {
+                    m_readGenerations.remove(account);
                     emit secretRead(account, {}, {});
                     return;
                 }
+                m_readGenerations.remove(account);
                 emit secretRead(account, {}, job->errorString());
             });
     job->start();
 #else
     Q_UNUSED(account)
+    Q_UNUSED(generation)
 #endif
 }
 

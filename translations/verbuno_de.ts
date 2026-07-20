@@ -49,6 +49,10 @@
     <message><source>Translation copied to the clipboard.</source><translation>Übersetzung wurde in die Zwischenablage kopiert.</translation></message>
     <message><source>Detect automatically</source><translation>Automatisch erkennen</translation></message>
     <message><source>Connecting to the selected model…</source><translation>Verbindung zum ausgewählten Modell…</translation></message>
+    <message><source>Reading the saved API key…</source><translation>Gespeicherter API-Schlüssel wird gelesen…</translation></message>
+    <message><source>OpenRouter is still selecting an available endpoint…</source><translation>OpenRouter wählt noch einen verfügbaren Endpunkt aus…</translation></message>
+    <message><source>The first free route was too slow; trying another one…</source><translation>Die erste kostenlose Route war zu langsam; eine andere wird versucht…</translation></message>
+    <message><source>The model is processing the text…</source><translation>Das Modell verarbeitet den Text…</translation></message>
     <message><source>Translating…</source><translation>Übersetzung läuft…</translation></message>
     <message><source>Translation complete.</source><translation>Übersetzung abgeschlossen.</translation></message>
     <message><source>Text from photo</source><translation>Text aus Foto</translation></message>
@@ -136,7 +140,7 @@
     <message><source>OpenRouter routing</source><translation>OpenRouter-Routing</translation></message>
     <message><source>Exclude providers that collect prompt data (recommended)</source><translation>Anbieter ausschließen, die Anfragedaten erfassen (empfohlen)</translation></message>
     <message><source>Require Zero Data Retention endpoints (strict; fewer models)</source><translation>Zero Data Retention verlangen (strikt; weniger Modelle)</translation></message>
-    <message><source>Prefer faster providers</source><translation>Schnellere Anbieter bevorzugen</translation></message>
+    <message><source>Prefer low-latency, high-throughput providers</source><translation>Anbieter mit niedriger Latenz und hohem Durchsatz bevorzugen</translation></message>
     <message><source>Verbuno sends text only to this endpoint. OpenRouter is a proxy: the selected upstream provider may have its own retention or training policy. Free endpoints can be rate-limited or unavailable. Review OpenRouter privacy settings before sending sensitive content.</source><translation>Verbuno sendet Text nur an diesen Endpunkt. OpenRouter arbeitet als Vermittler: Der gewählte Zielanbieter kann eigene Aufbewahrungs- oder Trainingsrichtlinien haben. Kostenlose Routen können begrenzt oder nicht verfügbar sein. Prüfen Sie die OpenRouter-Datenschutzeinstellungen, bevor Sie sensible Inhalte senden.</translation></message>
     <message><source>Loading the current free-model catalog…</source><translation>Aktueller Katalog kostenloser Modelle wird geladen…</translation></message>
     <message><source>Paste a new API key first.</source><translation>Bitte zuerst einen neuen API-Schlüssel einfügen.</translation></message>
@@ -221,10 +225,12 @@
   </context>
   <context>
     <name>verbuno::SecretStore</name>
+    <message><source>The system keychain did not respond within 8 seconds. Unlock it and try again.</source><translation>Der Systemschlüsselbund hat nicht innerhalb von 8 Sekunden geantwortet. Entsperren und erneut versuchen.</translation></message>
     <message><source>This build has no secure keychain integration.</source><translation>Diese Version hat keine sichere Schlüsselbund-Integration.</translation></message>
   </context>
   <context>
     <name>verbuno::TranslationController</name>
+    <message><source>Translation cancelled.</source><translation>Übersetzung abgebrochen.</translation></message>
     <message><source>A provider request is already running.</source><translation>Eine Anbieteranfrage läuft bereits.</translation></message>
     <message><source>The API key is unexpectedly short.</source><translation>Der API-Schlüssel ist unerwartet kurz.</translation></message>
     <message><source>Wait for the current provider request to finish.</source><translation>Bitte warten, bis die aktuelle Anbieteranfrage abgeschlossen ist.</translation></message>
@@ -248,6 +254,9 @@
     <message><source>The model catalog redirected unexpectedly.</source><translation>Der Modellkatalog hat unerwartet umgeleitet.</translation></message>
     <message><source>The provider reported a stream error.</source><translation>Der Anbieter hat einen Stream-Fehler gemeldet.</translation></message>
     <message><source>The provider request failed.</source><translation>Die Anbieteranfrage ist fehlgeschlagen.</translation></message>
+    <message><source>The model did not start responding within %1 seconds. Try again or choose a faster model.</source><translation>Das Modell hat nicht innerhalb von %1 Sekunden geantwortet. Erneut versuchen oder ein schnelleres Modell wählen.</translation></message>
+    <message><source>The model stopped responding for %1 seconds. The partial translation was kept; try again.</source><translation>Das Modell antwortet seit %1 Sekunden nicht mehr. Die Teilübersetzung wurde beibehalten; erneut versuchen.</translation></message>
+    <message><source>The model stopped responding for %1 seconds. Try again.</source><translation>Das Modell antwortet seit %1 Sekunden nicht mehr. Erneut versuchen.</translation></message>
     <message><source>The OpenRouter model catalog is not valid JSON.</source><translation>Der OpenRouter-Modellkatalog enthält kein gültiges JSON.</translation></message>
     <message><source>No free models were reported by OpenRouter.</source><translation>OpenRouter hat keine kostenlosen Modelle gemeldet.</translation></message>
   </context>

@@ -8,7 +8,7 @@ This file is the durable source of truth for continuing the project without rely
 - Repository: `Trendorin/Verbuno`
 - Application ID: `io.github.trendorin.Verbuno`
 - Binary/package: `verbuno`
-- Version: `0.3.1`
+- Version: `0.3.2`
 - License: `GPL-3.0-or-later`
 - Stack: `C++20`, `Qt 6 Widgets`, `CMake`, no Electron, WebView, QML or background service
 - Primary desktop: KDE Plasma; supported fallback behavior for GNOME and other Qt-capable Linux desktops
@@ -28,7 +28,10 @@ The application is not offline: translated text leaves the machine for the confi
 - Newly entered API keys default to persistent QtKeychain storage; session-only mode remains available explicitly.
 - QtKeychain insecure/plaintext fallback is always disabled.
 - OpenRouter requests default to `provider.data_collection = "deny"`.
+- OpenRouter routing prefers endpoints with low p90 latency and adequate p50 throughput without disabling uptime-aware load balancing or fallbacks.
 - `provider.zdr = true` is an optional stricter mode because it reduces route availability.
+- SSE keep-alive comments never extend the first-token deadline. A stalled free route gets one bounded retry; active text or reasoning streams use a separate idle deadline.
+- Persistent-key lookup is a visible request stage and fails after eight seconds when KWallet or Secret Service does not answer.
 - Local history is disabled by default, owner-only when enabled, atomically written, bounded and user-clearable.
 - API keys are excluded from normal settings, history, command-line arguments, logs and error messages.
 - Non-secret settings are atomically synchronized to an owner-only file; write failures are visible in the General settings page.

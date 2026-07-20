@@ -27,10 +27,12 @@ signals:
 
 private:
     void eraseSessionSecret(const QString& account);
-    void readLegacySecret(const QString& account);
+    void readLegacySecret(const QString& account, quint64 generation);
     void deleteLegacySecret(const QString& account, const QString& precedingError = {});
 
     QHash<QString, QString> m_sessionSecrets;
+    QHash<QString, quint64> m_readGenerations;
+    quint64 m_nextReadGeneration = 0;
 };
 
 } // namespace verbuno
