@@ -51,6 +51,48 @@
     <message><source>Connecting to the selected model…</source><translation>Подключение к выбранной модели…</translation></message>
     <message><source>Translating…</source><translation>Перевод…</translation></message>
     <message><source>Translation complete.</source><translation>Перевод готов.</translation></message>
+    <message><source>Text from photo</source><translation>Текст с фото</translation></message>
+    <message><source>Selected photo preview</source><translation>Предпросмотр выбранного фото</translation></message>
+    <message><source>Open photo…</source><translation>Открыть фото…</translation></message>
+    <message><source>Paste photo</source><translation>Вставить фото</translation></message>
+    <message><source>OCR language</source><translation>Язык распознавания</translation></message>
+    <message><source>Layout</source><translation>Разметка</translation></message>
+    <message><source>Automatic</source><translation>Автоматически</translation></message>
+    <message><source>Single text block</source><translation>Один блок текста</translation></message>
+    <message><source>Sparse text</source><translation>Разрозненный текст</translation></message>
+    <message><source>Recognize again</source><translation>Распознать заново</translation></message>
+    <message><source>Will use installed OCR language: %1</source><translation>Будет использован установленный язык OCR: %1</translation></message>
+    <message><source>Recognizing text locally…</source><translation>Локальное распознавание текста…</translation></message>
+    <message><source>Reading the image and running local OCR…</source><translation>Чтение изображения и локальное распознавание…</translation></message>
+    <message><source>Match translation source (recommended)</source><translation>Как язык исходного текста (рекомендуется)</translation></message>
+    <message><source>Mixed: %1</source><translation>Смешанный текст: %1</translation></message>
+    <message><source>No OCR language data is installed. Install a Tesseract language pack.</source><translation>Не установлены языковые данные OCR. Установите языковой пакет Tesseract.</translation></message>
+    <message><source>Open, paste, or drop an image. Recognition stays on this device.</source><translation>Откройте, вставьте или перетащите изображение. Распознавание выполняется на этом устройстве.</translation></message>
+    <message><source>Photo OCR is local. Only extracted text is sent after you press Translate.</source><translation>Распознавание фото выполняется локально. После нажатия «Перевести» отправляется только извлечённый текст.</translation></message>
+    <message><source>Choose a photo</source><translation>Выбор фото</translation></message>
+    <message><source>Images (*.png *.jpg *.jpeg *.webp *.bmp *.tif *.tiff);;All files (*)</source><translation>Изображения (*.png *.jpg *.jpeg *.webp *.bmp *.tif *.tiff);;Все файлы (*)</translation></message>
+    <message><source>The clipboard does not contain an image.</source><translation>В буфере обмена нет изображения.</translation></message>
+    <message><source>The clipboard image could not be read.</source><translation>Не удалось прочитать изображение из буфера обмена.</translation></message>
+    <message><source>No suitable OCR language is installed.</source><translation>Подходящий язык OCR не установлен.</translation></message>
+    <message><source>Clipboard image</source><translation>Изображение из буфера обмена</translation></message>
+    <message><source>%1 · %2 × %3 · %4 · confidence %5%</source><translation>%1 · %2 × %3 · %4 · точность %5%</translation></message>
+    <message><source>Text was recognized locally and truncated to the configured input limit. Review it before translating.</source><translation>Текст распознан локально и обрезан до установленного лимита. Проверьте его перед переводом.</translation></message>
+    <message><source>Text was recognized locally with low confidence. Check the OCR language, layout, and extracted text before translating.</source><translation>Текст распознан локально с низкой точностью. Перед переводом проверьте язык OCR, разметку и извлечённый текст.</translation></message>
+    <message><source>Text recognized locally (%1% confidence). Review it, then press Translate.</source><translation>Текст распознан локально (точность %1%). Проверьте его и нажмите «Перевести».</translation></message>
+  </context>
+  <context>
+    <name>verbuno::PhotoOcrEngine</name>
+    <message><source>Photo recognition is already running.</source><translation>Распознавание фото уже выполняется.</translation></message>
+    <message><source>The selected image cannot be read.</source><translation>Выбранное изображение невозможно прочитать.</translation></message>
+    <message><source>The image file is empty or larger than 32 MiB.</source><translation>Файл изображения пуст или превышает 32 МиБ.</translation></message>
+    <message><source>The selected file is not a supported image.</source><translation>Выбранный файл не является поддерживаемым изображением.</translation></message>
+    <message><source>The selected image could not be decoded: %1</source><translation>Не удалось декодировать выбранное изображение: %1</translation></message>
+    <message><source>The image dimensions are too large to process safely.</source><translation>Размеры изображения слишком велики для безопасной обработки.</translation></message>
+    <message><source>No Tesseract OCR language data is installed.</source><translation>Языковые данные Tesseract OCR не установлены.</translation></message>
+    <message><source>The selected OCR language is not installed.</source><translation>Выбранный язык OCR не установлен.</translation></message>
+    <message><source>Tesseract could not initialize the selected language.</source><translation>Tesseract не удалось инициализировать выбранный язык.</translation></message>
+    <message><source>Text recognition failed for this image.</source><translation>Не удалось распознать текст на этом изображении.</translation></message>
+    <message><source>No readable text was found. Try another OCR language or layout.</source><translation>Читаемый текст не найден. Попробуйте другой язык OCR или тип разметки.</translation></message>
   </context>
   <context>
     <name>verbuno::SettingsDialog</name>
@@ -133,7 +175,7 @@
   <context>
     <name>verbuno::AboutDialog</name>
     <message><source>About Verbuno</source><translation>О Verbuno</translation></message>
-    <message><source>A native C++20 and Qt 6 Widgets translation client for Linux.&#10;&#10;Verbuno contains no telemetry. Translation text is sent only to the API endpoint you configure. OpenRouter and the selected upstream provider apply their own logging, retention, and training policies.</source><translation>Нативный клиент переводов для Linux на C++20 и Qt 6 Widgets.&#10;&#10;Verbuno не содержит телеметрии. Текст отправляется только на настроенный вами адрес API. OpenRouter и выбранный конечный провайдер применяют собственные правила логирования, хранения и использования данных для обучения.</translation></message>
+    <message><source>A native C++20 and Qt 6 Widgets translation client for Linux with local photo OCR.&#10;&#10;Verbuno contains no telemetry. Photos are recognized on this device. Only text you explicitly translate is sent to the API endpoint you configure. OpenRouter and the selected upstream provider apply their own logging, retention, and training policies.</source><translation>Нативный клиент переводов для Linux на C++20 и Qt 6 Widgets с локальным распознаванием фото.&#10;&#10;Verbuno не содержит телеметрии. Фото распознаются на этом устройстве. На настроенный вами адрес API отправляется только текст, который вы явно решили перевести. OpenRouter и выбранный конечный провайдер применяют собственные правила логирования, хранения и использования данных для обучения.</translation></message>
   </context>
   <context>
     <name>verbuno::TrayController</name>

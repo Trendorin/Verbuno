@@ -28,7 +28,7 @@
   <a href="https://github.com/Trendorin/Verbuno/releases">Releases</a>
 </p>
 
-Verbuno is a native Linux translation client built with C++20 and Qt 6 Widgets. The tray opens a standard system-decorated, resizable window, translations stream from OpenRouter or another OpenAI-compatible endpoint, and the actual routed model and upstream provider remain visible while you work.
+Verbuno is a native Linux translation client built with C++20 and Qt 6 Widgets. It translates typed text or text extracted locally from photos, streams results from OpenRouter or another OpenAI-compatible endpoint, and keeps the actual routed model and upstream provider visible while you work.
 
 ## What it does
 
@@ -36,6 +36,7 @@ Verbuno is a native Linux translation client built with C++20 and Qt 6 Widgets. 
 |---|---|
 | Desktop window | A normal Qt window with native minimize, maximize and close controls on KDE, GNOME and other desktops. |
 | Translation | Roughly 190 language variants, automatic source detection, five writing styles and formatting preservation. |
+| Photos | Open, paste or drop PNG, JPEG, WebP, BMP and TIFF images; local Tesseract OCR runs off the UI thread and places editable text in the normal translation editor. |
 | Models | Any model ID, the `openrouter/free` router, or a refreshed catalog of models whose reported prices are zero. |
 | Providers | OpenRouter by default; the response-reported model and upstream provider are shown instead of merely repeating the requested router ID. Custom OpenAI-compatible endpoints are supported. |
 | Interface | Runtime switching between English, Russian, Ukrainian and German without restarting the application. |
@@ -46,6 +47,7 @@ Verbuno is a native Linux translation client built with C++20 and Qt 6 Widgets. 
 | Verbuno does | Verbuno cannot guarantee |
 |---|---|
 | No telemetry, analytics, crash uploads or background model calls. | That an external provider never logs, retains or trains on submitted text. |
+| Decodes and recognizes selected photos locally; image pixels and filenames are never sent to the translation provider. | Perfect OCR for blurred, handwritten, heavily stylized or low-contrast text. Review extracted text before sending it. |
 | Sends text only to the configured chat endpoint after an explicit translation action. | That a free endpoint remains available, fast or free in the future. |
 | Stores remembered keys in KWallet / Secret Service through QtKeychain, never in `QSettings`. | Anonymity from the provider, which still sees normal network and account metadata. |
 | Enables OpenRouter `data_collection: deny` by default and offers strict ZDR routing. | Availability of a model after privacy-incompatible endpoints have been excluded. |
@@ -66,6 +68,8 @@ Download the matching asset and `SHA256SUMS` from the [latest release](https://g
 
 Each binary package is built and install-tested in its native target. `PKGBUILD`, source and install-tree `.tar.xz` archives, an SPDX document and checksums are included in the same release. AppImage is intentionally not part of the release set.
 
+English, German, Russian and Ukrainian OCR data are installed with the native packages. Verbuno also discovers other system Tesseract language packs. For example, add Japanese with `tesseract-ocr-jpn` on Ubuntu, `tesseract-langpack-jpn` on Fedora or `tesseract-data-jpn` on Arch, then restart Verbuno.
+
 Verify downloads before installation:
 
 ```bash
@@ -79,8 +83,11 @@ sha256sum --ignore-missing --check SHA256SUMS
 2. Open **Settings → Provider**, paste the key and choose whether it may be remembered in the system keychain.
 3. Keep `openrouter/free`, refresh the current free-model list, or enter an exact model ID.
 4. Leave **Exclude providers that collect prompt data** enabled. Enable **Zero Data Retention** only when the selected model has a compatible route.
-5. Choose source and target languages, then press `Ctrl+Enter` to translate.
-6. Select the interface language under **Settings → General**; the visible UI and tray menu update immediately.
+5. For a photo, press **Open photo**, paste an image, or drop it onto the workspace. Choose the OCR language and layout when needed, check the locally extracted text, then press **Translate**.
+6. For typed text, choose source and target languages, then press `Ctrl+Enter` to translate.
+7. Select the interface language under **Settings → General**; the visible UI and tray menu update immediately.
+
+Photo recognition never starts a provider request. The image is decoded with strict size limits, auto-rotated from its metadata, resized safely, and recognized in a background task. A second local contrast pass is used when the first result has low confidence. Only the editable extracted text enters the existing translation flow after an explicit click.
 
 After a response begins, the workspace shows the exact model returned by the API. With OpenRouter it also shows the selected upstream provider, for example `Chutes via OpenRouter · qwen/qwen3-…`. Hover the summary to see the requested model or router such as `openrouter/free`.
 
@@ -98,7 +105,7 @@ For another provider, select **OpenAI-compatible endpoint** and enter the comple
 <a id="build-from-source"></a>
 ## Build from source
 
-Requirements: CMake 3.25+, Ninja, a C++20 compiler, Qt 6.4+ (Core, Widgets, Network, SVG, Tools) and QtKeychain for Qt 6.
+Requirements: CMake 3.25+, Ninja, a C++20 compiler, Qt 6.4+ (Core, Concurrent, Widgets, Network, SVG, Tools), QtKeychain for Qt 6 and Tesseract OCR 5+.
 
 <details>
 <summary>Fedora build dependencies</summary>
@@ -106,7 +113,9 @@ Requirements: CMake 3.25+, Ninja, a C++20 compiler, Qt 6.4+ (Core, Widgets, Netw
 ```bash
 sudo dnf install gcc-c++ cmake ninja-build \
   qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel \
-  qtkeychain-qt6-devel
+  qtkeychain-qt6-devel tesseract-devel \
+  tesseract-langpack-eng tesseract-langpack-deu \
+  tesseract-langpack-rus tesseract-langpack-ukr
 ```
 </details>
 
@@ -115,7 +124,9 @@ sudo dnf install gcc-c++ cmake ninja-build \
 
 ```bash
 sudo apt install build-essential cmake ninja-build \
-  qt6-base-dev qt6-svg-dev qt6-tools-dev qtkeychain-qt6-dev
+  qt6-base-dev qt6-svg-dev qt6-tools-dev qtkeychain-qt6-dev \
+  libtesseract-dev tesseract-ocr-eng tesseract-ocr-deu \
+  tesseract-ocr-rus tesseract-ocr-ukr
 ```
 </details>
 
@@ -146,6 +157,7 @@ Upgrading from the former TranslUnix package preserves non-secret settings, loca
 - Provider URLs must use HTTPS, except for loopback hosts; credentials embedded in URLs are rejected.
 - HTTP redirects are refused so an authorization header cannot be forwarded to a different endpoint.
 - Model responses are size-bounded, API errors are sanitized, and likely credential strings are redacted.
+- Image files, decoded dimensions and OCR output are bounded; unsupported or oversized input is rejected before recognition.
 - Translation text embedded in the request is explicitly treated as untrusted data, not as instructions.
 - Single-instance commands do not accept translation text or API keys on the command line.
 

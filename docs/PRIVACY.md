@@ -2,7 +2,7 @@
 
 ## Summary
 
-Verbuno has no telemetry and no project-operated server. It is a client for a provider selected by the user. A translation cannot be performed without sending the submitted text to that provider.
+Verbuno has no telemetry and no project-operated server. It is a client for a provider selected by the user. A translation cannot be performed without sending the submitted or locally extracted text to that provider. Photo recognition itself is local and does not require a provider.
 
 ## Network requests
 
@@ -22,6 +22,17 @@ The translation request contains:
 - OpenRouter routing privacy fields when OpenRouter is selected.
 
 It does not contain local history, unrelated clipboard content, filenames, device identifiers or normal application settings.
+
+## Photos and OCR
+
+- An image is read only after the user opens, pastes or drops it.
+- Decoding, orientation handling, scaling, contrast normalization and Tesseract OCR run locally in the Verbuno process.
+- Verbuno does not upload image pixels, the local path, filename, dimensions, selected OCR language or confidence score.
+- Extracted text is editable and is not sent anywhere until the user explicitly starts a translation.
+- Images are not written into local history or copied to a Verbuno cache. A selected image remains in process memory only while the workspace uses it.
+- File size, source dimensions, processing dimensions and OCR output are bounded. Unsupported or oversized input is rejected.
+
+Pasting a photo reads the current image offered by the desktop clipboard. Verbuno does not monitor the clipboard. The clipboard manager and the application that originally placed the image there remain outside Verbuno's control.
 
 ## Provider responsibility
 
@@ -46,7 +57,7 @@ Non-secret preferences are stored through Qt `QSettings` under the `Trendorin/Ve
 
 On the first launch after the product rename, Verbuno copies non-secret preferences and safe local history from the former TranslUnix identity. A remembered key is moved between the corresponding QtKeychain service names only after the new wallet entry is written successfully.
 
-History is disabled by default. When enabled, each record contains time, language codes, input, output and model ID. The file is size-bounded, record-bounded, age-bounded, written through `QSaveFile`, set to owner read/write permissions and never written through a symbolic link. It can be deleted from Settings or the History page.
+History is disabled by default. When enabled, each record contains time, language codes, text input, text output and model ID. It never contains the source image or its filename. The file is size-bounded, record-bounded, age-bounded, written through `QSaveFile`, set to owner read/write permissions and never written through a symbolic link. It can be deleted from Settings or the History page.
 
 The desktop clipboard is controlled by the desktop session. After a translation is copied, its lifetime is outside Verbuno's control.
 

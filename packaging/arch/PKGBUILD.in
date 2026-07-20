@@ -5,7 +5,8 @@ pkgdesc='Native Linux AI translation client'
 arch=('x86_64')
 url='https://github.com/Trendorin/Verbuno'
 license=('GPL-3.0-or-later')
-depends=('glibc' 'gcc-libs' 'qt6-base' 'qt6-svg' 'qtkeychain-qt6')
+depends=('glibc' 'gcc-libs' 'qt6-base' 'qt6-svg' 'qtkeychain-qt6' 'tesseract'
+         'tesseract-data-eng' 'tesseract-data-deu' 'tesseract-data-rus' 'tesseract-data-ukr')
 makedepends=('cmake' 'ninja' 'qt6-tools')
 provides=('translunix')
 conflicts=('translunix')

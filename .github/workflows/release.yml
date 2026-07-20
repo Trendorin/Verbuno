@@ -65,8 +65,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y \
-            build-essential cmake ninja-build qt6-base-dev qt6-svg-dev qt6-tools-dev \
-            qtkeychain-qt6-dev
+            build-essential cmake fonts-dejavu-core ninja-build qt6-base-dev qt6-svg-dev qt6-tools-dev \
+            qtkeychain-qt6-dev libtesseract-dev tesseract-ocr-eng \
+            tesseract-ocr-deu tesseract-ocr-rus tesseract-ocr-ukr
 
       - name: Configure, build and test
         run: |
@@ -94,6 +95,8 @@ jobs:
           deb_file="$(realpath "${deb_file}")"
           dpkg-deb --info "${deb_file}"
           dpkg-deb --contents "${deb_file}"
+          dpkg-deb --field "${deb_file}" Depends | tee /tmp/verbuno-deb-depends.txt
+          grep -q 'tesseract-ocr-eng' /tmp/verbuno-deb-depends.txt
           if dpkg-deb --field "${deb_file}" Depends | grep -Eq '(^|, )[[:alnum:].+-]+-dev([ ,]|$)'; then
             echo "DEB unexpectedly depends on a development package" >&2
             exit 1
@@ -142,8 +145,10 @@ jobs:
       - name: Install Fedora build dependencies
         run: |
           dnf install --setopt=install_weak_deps=False -y \
-            cmake gcc-c++ git-core ninja-build rpm-build \
-            qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel qtkeychain-qt6-devel
+            cmake dejavu-sans-fonts gcc-c++ git-core ninja-build rpm-build \
+            qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel qtkeychain-qt6-devel \
+            tesseract-devel tesseract-langpack-eng tesseract-langpack-deu \
+            tesseract-langpack-rus tesseract-langpack-ukr
 
       - name: Check out source
         uses: actions/checkout@v7
@@ -170,6 +175,7 @@ jobs:
           rpm -qpl "${rpm_file}"
           rpm -qpR "${rpm_file}" | sort | tee /tmp/verbuno-rpm-requires.txt
           grep -q 'libqt6keychain\.so\.1' /tmp/verbuno-rpm-requires.txt
+          grep -q 'tesseract-langpack-eng' /tmp/verbuno-rpm-requires.txt
           dnf install --setopt=install_weak_deps=False -y "${rpm_file}"
           rpm -q verbuno
           rpm -V verbuno
@@ -194,7 +200,8 @@ jobs:
       - name: Install Arch build dependencies
         run: |
           pacman -Syu --noconfirm --needed \
-            cmake git ninja qt6-base qt6-svg qt6-tools qtkeychain-qt6
+            cmake git ninja qt6-base qt6-svg qt6-tools qtkeychain-qt6 tesseract ttf-dejavu \
+            tesseract-data-eng tesseract-data-deu tesseract-data-rus tesseract-data-ukr
           sed -i '/^NoExtract[[:space:]]*=.*usr\/share\/doc/d' /etc/pacman.conf
 
       - name: Download source and PKGBUILD
@@ -223,7 +230,8 @@ jobs:
         run: |
           package_file="dist/verbuno-${VERSION}-1-x86_64.pkg.tar.zst"
           test -f "${package_file}"
-          pacman -Qip "${package_file}"
+          pacman -Qip "${package_file}" | tee /tmp/verbuno-arch-info.txt
+          grep -q 'tesseract-data-eng' /tmp/verbuno-arch-info.txt
           pacman -Qlp "${package_file}" | tee /tmp/verbuno-arch-files.txt
           grep -q 'usr/bin/verbuno$' /tmp/verbuno-arch-files.txt
           pacman -U --noconfirm "${package_file}"

@@ -25,4 +25,28 @@ printf '%s\n' \
   'PackageCopyrightText: Copyright 2026 Trendorin' \
   'ExternalRef: PACKAGE-MANAGER purl pkg:github/Trendorin/Verbuno' \
   '' \
-  'Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-Package-Verbuno'
+  'Relationship: SPDXRef-DOCUMENT DESCRIBES SPDXRef-Package-Verbuno' \
+  '' \
+  '##### System dependency: Tesseract OCR' \
+  '' \
+  'PackageName: Tesseract OCR' \
+  'SPDXID: SPDXRef-Package-Tesseract' \
+  'PackageDownloadLocation: https://github.com/tesseract-ocr/tesseract' \
+  'FilesAnalyzed: false' \
+  'PackageLicenseConcluded: Apache-2.0' \
+  'PackageLicenseDeclared: Apache-2.0' \
+  'PackageCopyrightText: NOASSERTION' \
+  '' \
+  'Relationship: SPDXRef-Package-Verbuno DEPENDS_ON SPDXRef-Package-Tesseract' \
+  '' \
+  '##### System dependency: Leptonica' \
+  '' \
+  'PackageName: Leptonica' \
+  'SPDXID: SPDXRef-Package-Leptonica' \
+  'PackageDownloadLocation: https://github.com/DanBloomberg/leptonica' \
+  'FilesAnalyzed: false' \
+  'PackageLicenseConcluded: Leptonica' \
+  'PackageLicenseDeclared: Leptonica' \
+  'PackageCopyrightText: NOASSERTION' \
+  '' \
+  'Relationship: SPDXRef-Package-Tesseract DEPENDS_ON SPDXRef-Package-Leptonica'

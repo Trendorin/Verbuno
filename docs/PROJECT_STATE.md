@@ -8,7 +8,7 @@ This file is the durable source of truth for continuing the project without rely
 - Repository: `Trendorin/Verbuno`
 - Application ID: `io.github.trendorin.Verbuno`
 - Binary/package: `verbuno`
-- Version: `0.2.0`
+- Version: `0.3.0`
 - License: `GPL-3.0-or-later`
 - Stack: `C++20`, `Qt 6 Widgets`, `CMake`, no Electron, WebView, QML or background service
 - Primary desktop: KDE Plasma; supported fallback behavior for GNOME and other Qt-capable Linux desktops
@@ -17,7 +17,9 @@ This file is the durable source of truth for continuing the project without rely
 
 Verbuno is a small tray-first client for high-quality model-assisted translation. OpenRouter is the default provider. A user can also supply a complete OpenAI-compatible Chat Completions endpoint, API key and model ID. The tray opens a standard system-decorated Qt window; the response-reported model and OpenRouter upstream provider are visible while the requested router remains available in a tooltip. The interface switches live between English, Russian, Ukrainian and German.
 
-The application is not offline: translation text leaves the machine for the configured provider. The application itself has no telemetry, hidden network calls or hosted backend. This distinction must remain explicit in the UI, README and privacy documentation.
+Photo input can be opened, pasted or dropped. Tesseract OCR is entirely local, asynchronous and limited by file, dimension and text bounds. Installed OCR languages are discovered at runtime; native packages include English, German, Russian and Ukrainian data. The user reviews editable extracted text before explicitly sending it through the normal translation flow. Image pixels and filenames never reach a provider or local history.
+
+The application is not offline: translated text leaves the machine for the configured provider. The application itself has no telemetry, hidden network calls or hosted backend. This distinction must remain explicit in the UI, README and privacy documentation.
 
 ## Security defaults
 
@@ -29,6 +31,7 @@ The application is not offline: translation text leaves the machine for the conf
 - `provider.zdr = true` is an optional stricter mode because it reduces route availability.
 - Local history is disabled by default, owner-only when enabled, atomically written, bounded and user-clearable.
 - API keys are excluded from normal settings, history, command-line arguments, logs and error messages.
+- Photo pixels, paths, filenames, OCR language and confidence metadata are excluded from provider requests and history.
 
 ## Native Linux repository baseline
 
@@ -54,5 +57,6 @@ A release is complete only when the following are green:
 - ASan/UBSan tests
 - CodeQL C++ analysis
 - desktop-file and AppStream validation
+- local Tesseract OCR smoke coverage with installed language data
 - source-archive content check, package file-set check, SPDX version check and SHA-256 verification
 - tag version, CMake version, AppStream version and release title match

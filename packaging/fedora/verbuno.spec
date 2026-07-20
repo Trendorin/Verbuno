@@ -1,5 +1,5 @@
 Name:           verbuno
-Version:        0.2.0
+Version:        0.3.0
 Release:        1%{?dist}
 Summary:        Native Linux AI translation client
 License:        GPL-3.0-or-later
@@ -15,6 +15,11 @@ BuildRequires:  qt6-qtbase-devel >= 6.4
 BuildRequires:  qt6-qtsvg-devel >= 6.4
 BuildRequires:  qt6-qttools-devel >= 6.4
 BuildRequires:  qtkeychain-qt6-devel
+BuildRequires:  tesseract-devel >= 5.0
+Requires:       tesseract-langpack-eng
+Requires:       tesseract-langpack-deu
+Requires:       tesseract-langpack-rus
+Requires:       tesseract-langpack-ukr
 
 %description
 Verbuno is a native C++20 and Qt 6 Widgets translation client. It opens
@@ -58,6 +63,9 @@ OpenRouter or OpenAI-compatible endpoint without application telemetry.
 %{_datadir}/metainfo/io.github.trendorin.Verbuno.metainfo.xml
 
 %changelog
+* Mon Jul 20 2026 Trendorin - 0.3.0-1
+- Add local photo OCR with editable text extraction and language selection
+
 * Sun Jul 19 2026 Trendorin - 0.2.0-1
 - Rename the application to Verbuno and report the actual routed provider and model
 
