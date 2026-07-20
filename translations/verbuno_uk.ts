@@ -49,6 +49,10 @@
     <message><source>Translation copied to the clipboard.</source><translation>Переклад скопійовано до буфера обміну.</translation></message>
     <message><source>Detect automatically</source><translation>Визначити автоматично</translation></message>
     <message><source>Connecting to the selected model…</source><translation>Підключення до вибраної моделі…</translation></message>
+    <message><source>Reading the saved API key…</source><translation>Читання збереженого API-ключа…</translation></message>
+    <message><source>OpenRouter is still selecting an available endpoint…</source><translation>OpenRouter усе ще вибирає доступний endpoint…</translation></message>
+    <message><source>The first free route was too slow; trying another one…</source><translation>Перший безкоштовний маршрут був надто повільним; пробуємо інший…</translation></message>
+    <message><source>The model is processing the text…</source><translation>Модель обробляє текст…</translation></message>
     <message><source>Translating…</source><translation>Переклад…</translation></message>
     <message><source>Translation complete.</source><translation>Переклад завершено.</translation></message>
     <message><source>Text from photo</source><translation>Текст із фото</translation></message>
@@ -136,7 +140,7 @@
     <message><source>OpenRouter routing</source><translation>Маршрутизація OpenRouter</translation></message>
     <message><source>Exclude providers that collect prompt data (recommended)</source><translation>Виключати провайдерів, які збирають запити (рекомендовано)</translation></message>
     <message><source>Require Zero Data Retention endpoints (strict; fewer models)</source><translation>Вимагати Zero Data Retention (суворо; моделей буде менше)</translation></message>
-    <message><source>Prefer faster providers</source><translation>Надавати перевагу швидшим провайдерам</translation></message>
+    <message><source>Prefer low-latency, high-throughput providers</source><translation>Надавати перевагу провайдерам із низькою затримкою та високою швидкістю</translation></message>
     <message><source>Verbuno sends text only to this endpoint. OpenRouter is a proxy: the selected upstream provider may have its own retention or training policy. Free endpoints can be rate-limited or unavailable. Review OpenRouter privacy settings before sending sensitive content.</source><translation>Verbuno надсилає текст лише на цю адресу. OpenRouter є посередником: вибраний кінцевий провайдер може мати власну політику зберігання чи навчання. Безкоштовні маршрути можуть мати обмеження або бути недоступними. Перевірте налаштування приватності OpenRouter перед надсиланням чутливих даних.</translation></message>
     <message><source>Loading the current free-model catalog…</source><translation>Завантаження актуального каталогу безкоштовних моделей…</translation></message>
     <message><source>Paste a new API key first.</source><translation>Спочатку вставте новий API-ключ.</translation></message>
@@ -221,10 +225,12 @@
   </context>
   <context>
     <name>verbuno::SecretStore</name>
+    <message><source>The system keychain did not respond within 8 seconds. Unlock it and try again.</source><translation>Системне сховище ключів не відповіло за 8 секунд. Розблокуйте його та спробуйте ще раз.</translation></message>
     <message><source>This build has no secure keychain integration.</source><translation>У цій збірці немає інтеграції із захищеним сховищем ключів.</translation></message>
   </context>
   <context>
     <name>verbuno::TranslationController</name>
+    <message><source>Translation cancelled.</source><translation>Переклад скасовано.</translation></message>
     <message><source>A provider request is already running.</source><translation>Запит до провайдера вже виконується.</translation></message>
     <message><source>The API key is unexpectedly short.</source><translation>API-ключ має неочікувано малу довжину.</translation></message>
     <message><source>Wait for the current provider request to finish.</source><translation>Дочекайтеся завершення поточного запиту до провайдера.</translation></message>
@@ -248,6 +254,9 @@
     <message><source>The model catalog redirected unexpectedly.</source><translation>Каталог моделей неочікувано перенаправив запит.</translation></message>
     <message><source>The provider reported a stream error.</source><translation>Провайдер повідомив про помилку потоку.</translation></message>
     <message><source>The provider request failed.</source><translation>Запит до провайдера завершився помилкою.</translation></message>
+    <message><source>The model did not start responding within %1 seconds. Try again or choose a faster model.</source><translation>Модель не почала відповідати протягом %1 с. Спробуйте ще раз або виберіть швидшу модель.</translation></message>
+    <message><source>The model stopped responding for %1 seconds. The partial translation was kept; try again.</source><translation>Модель не відповідає вже %1 с. Частковий переклад збережено; спробуйте ще раз.</translation></message>
+    <message><source>The model stopped responding for %1 seconds. Try again.</source><translation>Модель не відповідає вже %1 с. Спробуйте ще раз.</translation></message>
     <message><source>The OpenRouter model catalog is not valid JSON.</source><translation>Каталог моделей OpenRouter містить некоректний JSON.</translation></message>
     <message><source>No free models were reported by OpenRouter.</source><translation>OpenRouter не повідомив про доступні безкоштовні моделі.</translation></message>
   </context>

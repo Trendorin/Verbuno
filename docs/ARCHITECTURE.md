@@ -10,7 +10,7 @@ Verbuno is one native desktop process. It has no daemon, embedded browser, local
 | `TranslationPanel` | Translation interface with the actual provider/model summary, language pair and streamed output. |
 | `PhotoOcrEngine` | Discovers installed Tesseract language data, safely decodes images and performs asynchronous, confidence-scored local OCR. |
 | `TranslationController` | Validates user intent, obtains a credential, reports credential availability, starts one request and optionally records the result. |
-| `ProviderClient` | Builds Chat Completions requests, enforces network policy, decodes SSE, reads response routing metadata and loads OpenRouter models. |
+| `ProviderClient` | Builds Chat Completions requests, enforces network policy and semantic deadlines, decodes SSE, performs the bounded free-route retry, reads response routing metadata and loads OpenRouter models. |
 | `PromptBuilder` | Creates a provider-independent translation instruction with formatting and prompt-injection constraints. |
 | `SecretStore` | Keeps a session credential in memory and optionally delegates persistence to QtKeychain. |
 | `HistoryStore` | Implements opt-in, bounded, atomic local history with owner-only permissions. |
@@ -23,11 +23,11 @@ Verbuno is one native desktop process. It has no daemon, embedded browser, local
 1. The user chooses a language pair and explicitly starts a translation.
 2. `TranslationController` validates input length, language selection and endpoint policy.
 3. `SecretStore` returns the session key or reads it from the desktop wallet when allowed.
-4. `ProviderClient` sends a single HTTPS POST to the configured endpoint.
-5. SSE events are parsed incrementally and displayed in the active main window. The API-reported model and, for OpenRouter, selected upstream provider update the visible route summary.
+4. `ProviderClient` sends an HTTPS POST to the configured endpoint. If `openrouter/free` or an explicit `:free` model produces no text or reasoning activity within its deadline, the same user action may create one final retry with identical privacy restrictions.
+5. SSE events are parsed incrementally and displayed in the active main window. Keep-alive comments do not extend semantic deadlines; text and reasoning chunks do. The API-reported model and, for OpenRouter, selected upstream provider update the visible route summary.
 6. The final response is written to local history only when history was enabled before the request; the recorded model is the response-reported model when available.
 
-OpenRouter-only routing fields and the metadata opt-in header are never sent to custom providers. Custom endpoints receive the common `model`, `messages`, `temperature` and `stream` Chat Completions fields.
+OpenRouter-only routing fields and the metadata opt-in header are never sent to custom providers. Custom endpoints receive the common `model`, `messages`, `temperature` and `stream` Chat Completions fields. Performance preferences use soft p90 latency and p50 throughput thresholds, so OpenRouter's normal uptime-aware balancing and fallbacks remain active.
 
 ## Photo flow
 

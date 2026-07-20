@@ -56,7 +56,7 @@ private:
     QPushButton* m_saveKeyButton = nullptr;
     QCheckBox* m_denyCollection = nullptr;
     QCheckBox* m_zeroRetention = nullptr;
-    QCheckBox* m_preferThroughput = nullptr;
+    QCheckBox* m_preferFastProviders = nullptr;
     QLabel* m_providerStatus = nullptr;
 
     QComboBox* m_style = nullptr;

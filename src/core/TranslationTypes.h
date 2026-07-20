@@ -24,7 +24,7 @@ struct ProviderSettings {
     bool openRouter = true;
     bool denyDataCollection = true;
     bool zeroDataRetention = false;
-    bool preferThroughput = true;
+    bool preferFastProviders = true;
 };
 
 struct TranslationRequest {

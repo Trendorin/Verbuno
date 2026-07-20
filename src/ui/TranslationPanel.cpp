@@ -260,6 +260,18 @@ TranslationPanel::TranslationPanel(TranslationController* controller,
 
     connect(m_controller, &TranslationController::requestStarted, this,
             &TranslationPanel::beginRequest);
+    connect(m_controller, &TranslationController::providerRequestStarted, this, [this] {
+        m_status->setText(tr("Connecting to the selected model…"));
+    });
+    connect(m_controller, &TranslationController::openRouterStillRouting, this, [this] {
+        m_status->setText(tr("OpenRouter is still selecting an available endpoint…"));
+    });
+    connect(m_controller, &TranslationController::freeRouteRetrying, this, [this] {
+        m_status->setText(tr("The first free route was too slow; trying another one…"));
+    });
+    connect(m_controller, &TranslationController::modelProcessing, this, [this] {
+        m_status->setText(tr("The model is processing the text…"));
+    });
     connect(m_controller, &TranslationController::translationChunk, this,
             &TranslationPanel::appendChunk);
     connect(m_controller, &TranslationController::inferenceRouteChanged, this,
@@ -613,7 +625,7 @@ void TranslationPanel::clearPhoto() {
 
 void TranslationPanel::beginRequest() {
     m_output->clear();
-    m_status->setText(tr("Connecting to the selected model…"));
+    m_status->setText(tr("Reading the saved API key…"));
     setBusy(true);
     updateProviderDisplay();
 }

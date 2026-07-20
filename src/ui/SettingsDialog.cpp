@@ -180,10 +180,11 @@ QWidget* SettingsDialog::createProviderPage() {
         new QCheckBox(tr("Exclude providers that collect prompt data (recommended)"), routingBox);
     m_zeroRetention =
         new QCheckBox(tr("Require Zero Data Retention endpoints (strict; fewer models)"), routingBox);
-    m_preferThroughput = new QCheckBox(tr("Prefer faster providers"), routingBox);
+    m_preferFastProviders = new QCheckBox(
+        tr("Prefer low-latency, high-throughput providers"), routingBox);
     routingLayout->addWidget(m_denyCollection);
     routingLayout->addWidget(m_zeroRetention);
-    routingLayout->addWidget(m_preferThroughput);
+    routingLayout->addWidget(m_preferFastProviders);
     root->addWidget(routingBox);
 
     auto* notice = new QLabel(
@@ -382,7 +383,7 @@ void SettingsDialog::loadSettings() {
     m_rememberKey->setChecked(m_settings->rememberApiKey());
     m_denyCollection->setChecked(provider.denyDataCollection);
     m_zeroRetention->setChecked(provider.zeroDataRetention);
-    m_preferThroughput->setChecked(provider.preferThroughput);
+    m_preferFastProviders->setChecked(provider.preferFastProviders);
 
     const int styleIndex = m_style->findData(static_cast<int>(m_settings->translationStyle()));
     if (styleIndex >= 0) {
@@ -420,7 +421,7 @@ ProviderSettings SettingsDialog::providerFromUi() const {
                          : modelText;
     provider.denyDataCollection = m_denyCollection->isChecked();
     provider.zeroDataRetention = m_zeroRetention->isChecked();
-    provider.preferThroughput = m_preferThroughput->isChecked();
+    provider.preferFastProviders = m_preferFastProviders->isChecked();
     return provider;
 }
 
@@ -508,7 +509,7 @@ void SettingsDialog::updateProviderControls() {
     const bool openRouter = m_providerType->currentData().toBool();
     m_denyCollection->setEnabled(openRouter);
     m_zeroRetention->setEnabled(openRouter);
-    m_preferThroughput->setEnabled(openRouter);
+    m_preferFastProviders->setEnabled(openRouter);
     if (openRouter && (m_endpoint->text().isEmpty() ||
                        !EndpointValidator::isOpenRouter(QUrl(m_endpoint->text())))) {
         m_providerName->setText(QStringLiteral("OpenRouter"));

@@ -50,8 +50,14 @@ TranslationController::TranslationController(AppSettings* settings,
             });
     connect(m_client, &ProviderClient::translationStarted, this, [this] {
         emit inferenceRouteChanged(m_inferenceRoute);
-        emit requestStarted();
+        emit providerRequestStarted();
     });
+    connect(m_client, &ProviderClient::openRouterStillRouting, this,
+            &TranslationController::openRouterStillRouting);
+    connect(m_client, &ProviderClient::freeRouteRetrying, this,
+            &TranslationController::freeRouteRetrying);
+    connect(m_client, &ProviderClient::modelProcessing, this,
+            &TranslationController::modelProcessing);
     connect(m_client, &ProviderClient::translationChunk, this,
             &TranslationController::translationChunk);
     connect(m_client, &ProviderClient::inferenceRouteResolved, this,
@@ -103,12 +109,23 @@ void TranslationController::translate(const QString& input,
     }
 
     m_secretPurpose = SecretPurpose::Translation;
+    m_inferenceRoute = {};
+    m_routeAccount = accountForProvider(m_pendingRequest->provider);
+    m_requestedModel = m_pendingRequest->provider.model.trimmed();
+    emit inferenceRouteChanged(m_inferenceRoute);
+    emit requestStarted();
     m_secretStore->readSecret(credentialAccount(), m_settings->rememberApiKey());
 }
 
 void TranslationController::cancel() {
+    const bool preparingTranslation =
+        m_secretPurpose == SecretPurpose::Translation && !m_client->isTranslating();
     m_pendingRequest.reset();
     m_secretPurpose = SecretPurpose::None;
+    if (preparingTranslation) {
+        emit requestFailed(tr("Translation cancelled."));
+        return;
+    }
     m_client->cancel();
 }
 
@@ -145,7 +162,7 @@ void TranslationController::refreshFreeModels() {
 }
 
 bool TranslationController::isBusy() const {
-    return m_client->isTranslating();
+    return m_client->isTranslating() || m_secretPurpose == SecretPurpose::Translation;
 }
 
 QString TranslationController::credentialAccount() const {

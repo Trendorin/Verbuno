@@ -33,6 +33,7 @@ Verbuno assumes the operating system and current desktop session are not already
 - Provider identity is mapped to a SHA-256-derived wallet account name.
 - Likely token values in surfaced provider errors are redacted.
 - No command-line option accepts a key.
+- Persistent-key reads have a bounded wait; late keychain results cannot resume a cancelled or timed-out translation.
 
 ### Content and responses
 
@@ -40,6 +41,8 @@ Verbuno assumes the operating system and current desktop session are not already
 - The system instruction treats all submitted text as untrusted translation content.
 - Buffered provider responses are capped.
 - SSE and non-streaming JSON are parsed structurally; HTML error pages are not rendered.
+- SSE keep-alive comments cannot extend the first-token or stream-idle deadline indefinitely.
+- Only explicitly free OpenRouter routes receive one pre-content retry, using the same endpoint, text and privacy constraints; paid and custom routes are never retried automatically.
 - Partial requests are cancellable and only completed results enter history.
 
 ### Local image processing

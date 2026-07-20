@@ -42,6 +42,10 @@ public:
 
 signals:
     void requestStarted();
+    void providerRequestStarted();
+    void openRouterStillRouting();
+    void freeRouteRetrying();
+    void modelProcessing();
     void translationChunk(const QString& text);
     void inferenceRouteChanged(const InferenceRoute& route);
     void translationFinished(const QString& text);

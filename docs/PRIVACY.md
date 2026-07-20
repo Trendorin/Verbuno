@@ -8,10 +8,10 @@ Verbuno has no telemetry and no project-operated server. It is a client for a pr
 
 Verbuno makes only these application-level requests:
 
-1. an explicit translation request to the configured Chat Completions endpoint;
+1. an explicitly started translation flow to the configured Chat Completions endpoint; a stalled `openrouter/free` or `:free` route can send one bounded retry with the same text and privacy fields;
 2. an explicit refresh of the public OpenRouter model catalog.
 
-There is no automatic model refresh, update checker, analytics request, crash upload or background synchronization. Normal DNS, TLS and operating-system networking behavior still applies.
+There is no automatic model refresh, update checker, analytics request, crash upload or background synchronization. The free-route retry is part of the user's active translation and never runs after that flow ends. Normal DNS, TLS and operating-system networking behavior still applies.
 
 The translation request contains:
 

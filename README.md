@@ -41,7 +41,7 @@ Verbuno is a native Linux translation client built with C++20 and Qt 6 Widgets. 
 | Providers | OpenRouter by default; the response-reported model and upstream provider are shown instead of merely repeating the requested router ID. Custom OpenAI-compatible endpoints are supported. |
 | Interface | Runtime switching between English, Russian, Ukrainian and German without restarting the application. |
 | Local storage | Provider, exact model, interface and translation languages, translation/OCR preferences and tray behavior are restored after restart. |
-| Output | Server-sent events are decoded incrementally, with cancellation and clear provider errors. |
+| Output | Incremental SSE output with bounded first-token and idle waits; a stalled free route gets one automatic retry. |
 
 ## Privacy boundary
 
