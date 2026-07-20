@@ -13,6 +13,7 @@
     <p>It connects directly to OpenRouter or another OpenAI-compatible endpoint selected by the user. It has no telemetry and stores API keys only in the desktop keychain.</p>
     <ul>
       <li>Translate between a broad catalog of languages with streamed output.</li>
+      <li>Extract editable text from opened, pasted or dropped photos using local Tesseract OCR.</li>
       <li>Choose any model or refresh the current OpenRouter free-model catalog.</li>
       <li>Restrict OpenRouter routing by data-collection and Zero Data Retention policies.</li>
       <li>Keep local history only when explicitly enabled.</li>
@@ -27,6 +28,11 @@
   <url type="vcs-browser">https://github.com/Trendorin/Verbuno</url>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.3.0" date="2026-07-20">
+      <description>
+        <p>Added asynchronous local photo OCR with image preview, installed-language discovery, layout modes, confidence feedback and an explicit review-before-translation workflow.</p>
+      </description>
+    </release>
     <release version="0.2.0" date="2026-07-19">
       <description>
         <p>Renamed the application to Verbuno, removed the optional context field, and added the actual routed OpenRouter provider and model to the interface and local history.</p>

@@ -33,7 +33,14 @@ int main(int argc, char* argv[]) {
         for (const QString& code : {QStringLiteral("ru"), QStringLiteral("uk"),
                                     QStringLiteral("de")}) {
             if (!languageManager.applyLanguage(code) ||
-                QCoreApplication::translate("verbuno::MainWindow", "Settings") == source) {
+                QCoreApplication::translate("verbuno::MainWindow", "Settings") == source ||
+                QCoreApplication::translate("verbuno::TranslationPanel", "Text from photo") ==
+                    QStringLiteral("Text from photo") ||
+                QCoreApplication::translate("verbuno::PhotoOcrEngine",
+                                            "No readable text was found. Try another OCR "
+                                            "language or layout.") ==
+                    QStringLiteral("No readable text was found. Try another OCR language or "
+                                   "layout.")) {
                 QTextStream(stderr) << "Translation catalog check failed for " << code << '\n';
                 return 1;
             }

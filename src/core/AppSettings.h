@@ -53,6 +53,12 @@ public:
     [[nodiscard]] int maximumInputCharacters() const;
     void setMaximumInputCharacters(int value);
 
+    [[nodiscard]] QString photoOcrLanguage() const;
+    void setPhotoOcrLanguage(const QString& language);
+
+    [[nodiscard]] int photoOcrLayout() const;
+    void setPhotoOcrLayout(int layout);
+
     void resetProvider();
 
 signals:

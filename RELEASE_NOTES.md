@@ -1,20 +1,20 @@
-# Verbuno 0.2.0
+# Verbuno 0.3.0
 
-This release completes the product rename to Verbuno and makes routed OpenRouter requests transparent in the interface.
+This release adds a complete review-first workflow for translating text from photos without uploading the image itself.
 
 ## Highlights
 
-- the application, executable, package, desktop metadata and repository are now named Verbuno;
-- the translation workspace shows the exact model reported by the API instead of presenting `openrouter/free` as if it were the selected model;
-- OpenRouter responses also show the chosen upstream inference provider, for example `Chutes via OpenRouter`;
-- the requested model or router remains visible in the provider-summary tooltip;
-- the optional per-request context field has been removed;
-- upgrades migrate ordinary settings, safe local history and remembered QtKeychain credentials from TranslUnix;
-- the standard system-decorated window and runtime English, Russian, Ukrainian and German interface remain available.
+- open a photo from disk, paste one from the clipboard or drop it directly onto the translation workspace;
+- decode and recognize PNG, JPEG, WebP, BMP and TIFF images locally with the system Tesseract 5 library;
+- run OCR outside the UI thread so the standard resizable Qt window remains responsive;
+- discover installed Tesseract language data at runtime and ship English, German, Russian and Ukrainian support with native packages;
+- choose automatic, single-block or sparse-text page segmentation and retry recognition without reopening the image;
+- automatically apply a second local contrast pass when the initial OCR confidence is low;
+- preview the selected image, inspect dimensions, recognition language and confidence, then edit the extracted text before translating;
+- reject oversized or unsupported images and bound both processing resolution and extracted text;
+- keep image pixels, local paths, filenames and OCR metadata out of provider requests and local history.
 
-## Upgrade note
-
-The new binary and package name is `verbuno`. DEB, RPM and Arch package metadata replaces the old `translunix` package. On first launch, application data is copied or safely moved to the new Verbuno identity; the old history file is retained as a recovery copy.
+Photo recognition never starts a network request. Only the extracted text is sent to the configured provider, and only after the user explicitly presses **Translate**. OCR quality still depends on the image, typography and installed language data, so the editable result should be reviewed.
 
 ## Release files
 
@@ -33,4 +33,4 @@ Every binary package is built and installed in its native target before publicat
 sha256sum --ignore-missing --check SHA256SUMS
 ```
 
-Translation content is sent to the configured external provider. The displayed upstream route is response metadata, not a privacy guarantee. Review OpenRouter and the selected inference provider's current retention and training policies before submitting sensitive text.
+Translation text is sent to the configured external provider. The displayed upstream route is response metadata, not a privacy guarantee. Review OpenRouter and the selected inference provider's current retention and training policies before submitting sensitive text.

@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 
 project(
     Verbuno
-    VERSION 0.2.0
+    VERSION 0.3.0
     DESCRIPTION "A native Linux AI translation client"
     HOMEPAGE_URL "https://github.com/Trendorin/Verbuno"
     LANGUAGES CXX
@@ -23,8 +23,10 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Widgets Network Svg LinguistTools)
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core Concurrent Gui Widgets Network Svg LinguistTools)
 find_package(Qt6Keychain CONFIG QUIET)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(Tesseract REQUIRED IMPORTED_TARGET tesseract>=5.0)
 
 set(VERBUNO_KEYCHAIN_TARGET "")
 if(TARGET Qt6Keychain::Qt6Keychain)
@@ -51,6 +53,8 @@ add_library(verbuno_core STATIC
     src/core/InterfaceLanguageManager.h
     src/core/LanguageCatalog.cpp
     src/core/LanguageCatalog.h
+    src/core/PhotoOcrEngine.cpp
+    src/core/PhotoOcrEngine.h
     src/core/PromptBuilder.cpp
     src/core/PromptBuilder.h
     src/core/ProviderClient.cpp
@@ -72,7 +76,10 @@ target_compile_definitions(verbuno_core PUBLIC
 target_link_libraries(verbuno_core
     PUBLIC
         Qt6::Core
+        Qt6::Concurrent
+        Qt6::Gui
         Qt6::Network
+        PkgConfig::Tesseract
 )
 
 if(VERBUNO_KEYCHAIN_TARGET)
@@ -173,6 +180,9 @@ set(CPACK_DEBIAN_PACKAGE_PROVIDES "translunix")
 set(CPACK_DEBIAN_PACKAGE_CONFLICTS "translunix (<< 0.2.0)")
 set(CPACK_DEBIAN_PACKAGE_REPLACES "translunix (<< 0.2.0)")
 set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS
+    "tesseract-ocr-eng, tesseract-ocr-deu, tesseract-ocr-rus, tesseract-ocr-ukr"
+)
 set(CPACK_DEBIAN_PACKAGE_SECTION "utils")
 set(CPACK_RPM_PACKAGE_NAME "verbuno")
 set(CPACK_RPM_PACKAGE_PROVIDES "translunix = ${PROJECT_VERSION}")
@@ -181,4 +191,7 @@ set(CPACK_RPM_FILE_NAME RPM-DEFAULT)
 set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
 set(CPACK_RPM_PACKAGE_LICENSE "GPL-3.0-or-later")
 set(CPACK_RPM_PACKAGE_AUTOREQ ON)
+set(CPACK_RPM_PACKAGE_REQUIRES
+    "tesseract-langpack-eng, tesseract-langpack-deu, tesseract-langpack-rus, tesseract-langpack-ukr"
+)
 include(CPack)

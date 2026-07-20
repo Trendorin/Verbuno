@@ -195,6 +195,28 @@ void AppSettings::setMaximumInputCharacters(int value) {
     sync();
 }
 
+QString AppSettings::photoOcrLanguage() const {
+    return m_settings
+        .value(QStringLiteral("photoOcr/language"), QStringLiteral("match-source"))
+        .toString();
+}
+
+void AppSettings::setPhotoOcrLanguage(const QString& language) {
+    const QString normalized = language.trimmed();
+    m_settings.setValue(QStringLiteral("photoOcr/language"),
+                        normalized.isEmpty() ? QStringLiteral("match-source") : normalized);
+    sync();
+}
+
+int AppSettings::photoOcrLayout() const {
+    return std::clamp(m_settings.value(QStringLiteral("photoOcr/layout"), 0).toInt(), 0, 2);
+}
+
+void AppSettings::setPhotoOcrLayout(int layout) {
+    m_settings.setValue(QStringLiteral("photoOcr/layout"), std::clamp(layout, 0, 2));
+    sync();
+}
+
 void AppSettings::resetProvider() {
     const QStringList keys = {QStringLiteral("provider/name"),
                               QStringLiteral("provider/chatEndpoint"),

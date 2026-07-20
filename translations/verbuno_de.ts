@@ -51,6 +51,48 @@
     <message><source>Connecting to the selected model…</source><translation>Verbindung zum ausgewählten Modell…</translation></message>
     <message><source>Translating…</source><translation>Übersetzung läuft…</translation></message>
     <message><source>Translation complete.</source><translation>Übersetzung abgeschlossen.</translation></message>
+    <message><source>Text from photo</source><translation>Text aus Foto</translation></message>
+    <message><source>Selected photo preview</source><translation>Vorschau des ausgewählten Fotos</translation></message>
+    <message><source>Open photo…</source><translation>Foto öffnen…</translation></message>
+    <message><source>Paste photo</source><translation>Foto einfügen</translation></message>
+    <message><source>OCR language</source><translation>OCR-Sprache</translation></message>
+    <message><source>Layout</source><translation>Layout</translation></message>
+    <message><source>Automatic</source><translation>Automatisch</translation></message>
+    <message><source>Single text block</source><translation>Einzelner Textblock</translation></message>
+    <message><source>Sparse text</source><translation>Verteilter Text</translation></message>
+    <message><source>Recognize again</source><translation>Erneut erkennen</translation></message>
+    <message><source>Will use installed OCR language: %1</source><translation>Installierte OCR-Sprache wird verwendet: %1</translation></message>
+    <message><source>Recognizing text locally…</source><translation>Text wird lokal erkannt…</translation></message>
+    <message><source>Reading the image and running local OCR…</source><translation>Bild wird gelesen und lokal erkannt…</translation></message>
+    <message><source>Match translation source (recommended)</source><translation>Wie Ausgangssprache der Übersetzung (empfohlen)</translation></message>
+    <message><source>Mixed: %1</source><translation>Gemischt: %1</translation></message>
+    <message><source>No OCR language data is installed. Install a Tesseract language pack.</source><translation>Keine OCR-Sprachdaten installiert. Installieren Sie ein Tesseract-Sprachpaket.</translation></message>
+    <message><source>Open, paste, or drop an image. Recognition stays on this device.</source><translation>Öffnen, fügen oder ziehen Sie ein Bild hierher. Die Erkennung bleibt auf diesem Gerät.</translation></message>
+    <message><source>Photo OCR is local. Only extracted text is sent after you press Translate.</source><translation>Die Foto-OCR läuft lokal. Erst nach einem Klick auf „Übersetzen“ wird nur der erkannte Text gesendet.</translation></message>
+    <message><source>Choose a photo</source><translation>Foto auswählen</translation></message>
+    <message><source>Images (*.png *.jpg *.jpeg *.webp *.bmp *.tif *.tiff);;All files (*)</source><translation>Bilder (*.png *.jpg *.jpeg *.webp *.bmp *.tif *.tiff);;Alle Dateien (*)</translation></message>
+    <message><source>The clipboard does not contain an image.</source><translation>Die Zwischenablage enthält kein Bild.</translation></message>
+    <message><source>The clipboard image could not be read.</source><translation>Das Bild aus der Zwischenablage konnte nicht gelesen werden.</translation></message>
+    <message><source>No suitable OCR language is installed.</source><translation>Keine passende OCR-Sprache ist installiert.</translation></message>
+    <message><source>Clipboard image</source><translation>Bild aus der Zwischenablage</translation></message>
+    <message><source>%1 · %2 × %3 · %4 · confidence %5%</source><translation>%1 · %2 × %3 · %4 · Genauigkeit %5%</translation></message>
+    <message><source>Text was recognized locally and truncated to the configured input limit. Review it before translating.</source><translation>Der Text wurde lokal erkannt und auf die festgelegte Eingabegrenze gekürzt. Prüfen Sie ihn vor der Übersetzung.</translation></message>
+    <message><source>Text was recognized locally with low confidence. Check the OCR language, layout, and extracted text before translating.</source><translation>Der Text wurde lokal mit geringer Genauigkeit erkannt. Prüfen Sie OCR-Sprache, Layout und erkannten Text vor der Übersetzung.</translation></message>
+    <message><source>Text recognized locally (%1% confidence). Review it, then press Translate.</source><translation>Text lokal erkannt (%1% Genauigkeit). Prüfen Sie ihn und klicken Sie dann auf „Übersetzen“.</translation></message>
+  </context>
+  <context>
+    <name>verbuno::PhotoOcrEngine</name>
+    <message><source>Photo recognition is already running.</source><translation>Die Fotoerkennung läuft bereits.</translation></message>
+    <message><source>The selected image cannot be read.</source><translation>Das ausgewählte Bild kann nicht gelesen werden.</translation></message>
+    <message><source>The image file is empty or larger than 32 MiB.</source><translation>Die Bilddatei ist leer oder größer als 32 MiB.</translation></message>
+    <message><source>The selected file is not a supported image.</source><translation>Die ausgewählte Datei ist kein unterstütztes Bild.</translation></message>
+    <message><source>The selected image could not be decoded: %1</source><translation>Das ausgewählte Bild konnte nicht dekodiert werden: %1</translation></message>
+    <message><source>The image dimensions are too large to process safely.</source><translation>Die Bildabmessungen sind für eine sichere Verarbeitung zu groß.</translation></message>
+    <message><source>No Tesseract OCR language data is installed.</source><translation>Keine Tesseract-OCR-Sprachdaten installiert.</translation></message>
+    <message><source>The selected OCR language is not installed.</source><translation>Die ausgewählte OCR-Sprache ist nicht installiert.</translation></message>
+    <message><source>Tesseract could not initialize the selected language.</source><translation>Tesseract konnte die ausgewählte Sprache nicht initialisieren.</translation></message>
+    <message><source>Text recognition failed for this image.</source><translation>Die Texterkennung für dieses Bild ist fehlgeschlagen.</translation></message>
+    <message><source>No readable text was found. Try another OCR language or layout.</source><translation>Kein lesbarer Text gefunden. Versuchen Sie eine andere OCR-Sprache oder ein anderes Layout.</translation></message>
   </context>
   <context>
     <name>verbuno::SettingsDialog</name>
@@ -133,7 +175,7 @@
   <context>
     <name>verbuno::AboutDialog</name>
     <message><source>About Verbuno</source><translation>Über Verbuno</translation></message>
-    <message><source>A native C++20 and Qt 6 Widgets translation client for Linux.&#10;&#10;Verbuno contains no telemetry. Translation text is sent only to the API endpoint you configure. OpenRouter and the selected upstream provider apply their own logging, retention, and training policies.</source><translation>Ein nativer Übersetzungsclient für Linux mit C++20 und Qt 6 Widgets.&#10;&#10;Verbuno enthält keine Telemetrie. Übersetzungstext wird nur an den von Ihnen eingerichteten API-Endpunkt gesendet. OpenRouter und der gewählte Zielanbieter wenden ihre eigenen Richtlinien für Protokollierung, Aufbewahrung und Training an.</translation></message>
+    <message><source>A native C++20 and Qt 6 Widgets translation client for Linux with local photo OCR.&#10;&#10;Verbuno contains no telemetry. Photos are recognized on this device. Only text you explicitly translate is sent to the API endpoint you configure. OpenRouter and the selected upstream provider apply their own logging, retention, and training policies.</source><translation>Ein nativer Übersetzungsclient für Linux mit C++20, Qt 6 Widgets und lokaler Foto-OCR.&#10;&#10;Verbuno enthält keine Telemetrie. Fotos werden auf diesem Gerät erkannt. Nur Text, den Sie ausdrücklich übersetzen, wird an den eingerichteten API-Endpunkt gesendet. OpenRouter und der gewählte Zielanbieter wenden ihre eigenen Richtlinien für Protokollierung, Aufbewahrung und Training an.</translation></message>
   </context>
   <context>
     <name>verbuno::TrayController</name>

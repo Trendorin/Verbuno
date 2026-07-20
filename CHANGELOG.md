@@ -2,6 +2,21 @@
 
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use semantic versioning.
 
+## [0.3.0] - 2026-07-20
+
+### Added
+
+- Local Tesseract OCR for images opened from disk, pasted from the clipboard or dropped onto the translation workspace.
+- Runtime discovery of installed OCR language data, a source-language recommendation and mixed English/German/Russian/Ukrainian recognition.
+- Automatic, single-block and sparse-text layouts, bounded image preview, OCR confidence feedback and a manual retry path.
+- A low-confidence second recognition pass using locally normalized contrast.
+
+### Changed
+
+- Photo decoding and OCR run outside the UI thread, while translation remains an explicit separate action.
+- Native DEB, RPM and Arch packages now depend on Tesseract plus English, German, Russian and Ukrainian trained data.
+- Privacy and security documentation now distinguishes local image processing from external text translation.
+
 ## [0.2.0] - 2026-07-19
 
 ### Added
@@ -50,5 +65,6 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - Ubuntu, Fedora, Arch, sanitizer and CodeQL validation.
 
 [0.2.0]: https://github.com/Trendorin/Verbuno/releases/tag/v0.2.0
+[0.3.0]: https://github.com/Trendorin/Verbuno/releases/tag/v0.3.0
 [0.1.1]: https://github.com/Trendorin/Verbuno/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Trendorin/Verbuno/releases/tag/v0.1.0

@@ -28,7 +28,7 @@
   <a href="https://github.com/Trendorin/Verbuno/releases">Releases</a>
 </p>
 
-Verbuno ist ein nativer Linux-Übersetzungsclient auf Basis von C++20 und Qt 6 Widgets. Die Systemleiste öffnet ein normales, vom Desktop verwaltetes Fenster, Antworten von OpenRouter oder einer anderen OpenAI-kompatiblen API werden gestreamt und das tatsächlich gewählte Modell sowie der Zielanbieter bleiben sichtbar.
+Verbuno ist ein nativer Linux-Übersetzungsclient auf Basis von C++20 und Qt 6 Widgets. Er übersetzt eingegebenen Text oder lokal aus Fotos erkannten Text, streamt Ergebnisse von OpenRouter oder einer anderen OpenAI-kompatiblen API und zeigt das tatsächlich verwendete Modell sowie den Zielanbieter an.
 
 ## Funktionen
 
@@ -36,6 +36,7 @@ Verbuno ist ein nativer Linux-Übersetzungsclient auf Basis von C++20 und Qt 6 W
 |---|---|
 | Fenster | Normales Qt-Fenster mit nativen Schaltflächen zum Minimieren, Maximieren und Schließen unter KDE, GNOME und weiteren Desktops. |
 | Übersetzung | Rund 190 Sprachvarianten, automatische Erkennung, fünf Stile und Formaterhaltung. |
+| Fotos | PNG-, JPEG-, WebP-, BMP- und TIFF-Bilder öffnen, einfügen oder ablegen; lokale Tesseract-OCR läuft außerhalb des UI-Threads und übergibt editierbaren Text an den normalen Übersetzungseditor. |
 | Modelle | Beliebige Modell-ID, `openrouter/free` oder ein aktueller Katalog mit als kostenlos gemeldeten Modellen. |
 | Anbieter | Standardmäßig OpenRouter; angezeigt werden Modell und Zielanbieter aus der Antwort statt nur der angeforderten Router-ID. Eigene OpenAI-kompatible Endpunkte werden unterstützt. |
 | Oberfläche | Sofortiger Wechsel zwischen Englisch, Russisch, Ukrainisch und Deutsch ohne Neustart. |
@@ -46,6 +47,7 @@ Verbuno ist ein nativer Linux-Übersetzungsclient auf Basis von C++20 und Qt 6 W
 | Verbuno leistet | Verbuno kann nicht garantieren |
 |---|---|
 | Keine Telemetrie, Analyse, Absturz-Uploads oder Modellaufrufe im Hintergrund. | Dass ein externer Anbieter Texte niemals protokolliert, speichert oder zum Training nutzt. |
+| Ausgewählte Fotos werden lokal dekodiert und erkannt; Pixel und Dateiname gehen nie an den Übersetzungsanbieter. | Perfekte OCR bei unscharfer, handschriftlicher, stark stilisierter oder kontrastarmer Schrift. Der erkannte Text sollte geprüft werden. |
 | Text wird erst nach einer ausdrücklichen Aktion an den konfigurierten Endpunkt gesendet. | Dass ein kostenloser Endpunkt dauerhaft verfügbar, schnell oder kostenlos bleibt. |
 | Gespeicherte Schlüssel liegen via QtKeychain in KWallet / Secret Service, nicht in `QSettings`. | Anonymität gegenüber dem Anbieter, der normale Netzwerk- und Kontometadaten sieht. |
 | OpenRouter `data_collection: deny` ist standardmäßig aktiv; striktes ZDR ist optional. | Modellverfügbarkeit nach dem Ausschluss nicht datenschutzkonformer Routen. |
@@ -65,6 +67,8 @@ Das passende Paket und `SHA256SUMS` aus dem [neuesten Release](https://github.co
 
 Jedes Binärpaket wird im jeweiligen Zielsystem gebaut und installiert getestet. Der Release enthält außerdem `PKGBUILD`, Quell- und Installationsarchive im Format `.tar.xz`, ein SPDX-Dokument und Prüfsummen. AppImage gehört bewusst nicht zum Release.
 
+Die nativen Pakete installieren OCR-Daten für Englisch, Deutsch, Russisch und Ukrainisch. Verbuno erkennt außerdem weitere Tesseract-Sprachpakete des Systems. Japanisch lässt sich beispielsweise mit `tesseract-ocr-jpn` unter Ubuntu, `tesseract-langpack-jpn` unter Fedora oder `tesseract-data-jpn` unter Arch ergänzen; danach Verbuno neu starten.
+
 ```bash
 sha256sum --ignore-missing --check SHA256SUMS
 ```
@@ -75,8 +79,11 @@ sha256sum --ignore-missing --check SHA256SUMS
 2. **Einstellungen → Anbieter** öffnen, den Schlüssel einfügen und die Speicherung im System-Schlüsselbund wählen.
 3. `openrouter/free` verwenden, den aktuellen kostenlosen Katalog laden oder eine exakte Modell-ID eintragen.
 4. Den Ausschluss datensammelnder Anbieter aktiviert lassen. ZDR nur aktivieren, wenn eine passende Route existiert.
-5. Sprachen wählen und mit `Ctrl+Enter` übersetzen.
-6. Die Sprache unter **Einstellungen → Allgemein** wählen; Fenster und Tray-Menü werden sofort aktualisiert.
+5. Für ein Foto **Foto öffnen** wählen, ein Bild einfügen oder in den Arbeitsbereich ziehen. Bei Bedarf OCR-Sprache und Layout wählen, den lokal erkannten Text prüfen und **Übersetzen** drücken.
+6. Für normalen Text die Sprachen wählen und mit `Ctrl+Enter` übersetzen.
+7. Die Sprache unter **Einstellungen → Allgemein** wählen; Fenster und Tray-Menü werden sofort aktualisiert.
+
+Die Fotoerkennung allein erzeugt keine Anbieteranfrage. Das Bild wird mit strikten Größenlimits dekodiert, anhand seiner Metadaten ausgerichtet, sicher skaliert und im Hintergrund erkannt. Bei geringer Genauigkeit läuft ein zweiter lokaler Kontrastdurchgang. Nur der editierbare erkannte Text gelangt nach einem ausdrücklichen Klick in den bestehenden Übersetzungsablauf.
 
 Sobald die Antwort beginnt, zeigt der Arbeitsbereich das von der API gemeldete Modell. Bei OpenRouter wird auch der gewählte Zielanbieter angezeigt, etwa `Chutes über OpenRouter · qwen/qwen3-…`. Der Tooltip enthält weiterhin das angeforderte Modell oder den Router wie `openrouter/free`.
 
@@ -93,7 +100,7 @@ Für einen anderen Dienst werden die vollständige `/chat/completions`-URL und d
 
 ## Aus dem Quellcode bauen
 
-Erforderlich sind CMake 3.25+, Ninja, ein C++20-Compiler, Qt 6.4+ und QtKeychain für Qt 6.
+Erforderlich sind CMake 3.25+, Ninja, ein C++20-Compiler, Qt 6.4+ mit Concurrent, QtKeychain für Qt 6 und Tesseract OCR 5+.
 
 ```bash
 git clone https://github.com/Trendorin/Verbuno.git
@@ -104,9 +111,9 @@ ctest --preset release
 cmake --install build/release --prefix "$HOME/.local"
 ```
 
-Fedora-Abhängigkeiten: `gcc-c++ cmake ninja-build qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel qtkeychain-qt6-devel`.
+Fedora-Abhängigkeiten: `gcc-c++ cmake ninja-build qt6-qtbase-devel qt6-qtsvg-devel qt6-qttools-devel qtkeychain-qt6-devel tesseract-devel tesseract-langpack-eng tesseract-langpack-deu tesseract-langpack-rus tesseract-langpack-ukr`.
 
-Ubuntu-Abhängigkeiten: `build-essential cmake ninja-build qt6-base-dev qt6-svg-dev qt6-tools-dev qtkeychain-qt6-dev`.
+Ubuntu-Abhängigkeiten: `build-essential cmake ninja-build qt6-base-dev qt6-svg-dev qt6-tools-dev qtkeychain-qt6-dev libtesseract-dev tesseract-ocr-eng tesseract-ocr-deu tesseract-ocr-rus tesseract-ocr-ukr`.
 
 ## Deinstallation
 
@@ -122,6 +129,7 @@ Ubuntu-Abhängigkeiten: `build-essential cmake ninja-build qt6-base-dev qt6-svg-
 - HTTPS ist Pflicht; HTTP ist nur auf Loopback erlaubt, Zugangsdaten in URLs werden abgelehnt.
 - Weiterleitungen werden verweigert, damit Autorisierungsheader nicht an andere Server gelangen.
 - Antwortgrößen sind begrenzt, Fehlermeldungen werden bereinigt und schlüsselähnliche Werte redigiert.
+- Dateigröße, dekodierte Bildabmessungen und OCR-Ausgabe sind begrenzt; nicht unterstützte oder übergroße Eingaben werden vor der Erkennung abgelehnt.
 - Übersetzungstext wird im Prompt als nicht vertrauenswürdiger Inhalt behandelt.
 - Single-Instance-Befehle akzeptieren weder Schlüssel noch Übersetzungstext als Prozessargumente.
 

@@ -33,10 +33,11 @@ AboutDialog::AboutDialog(QWidget* parent)
     layout->addWidget(name);
 
     auto* description = new QLabel(
-        tr("A native C++20 and Qt 6 Widgets translation client for Linux.\n\n"
-           "Verbuno contains no telemetry. Translation text is sent only to the API endpoint "
-           "you configure. OpenRouter and the selected upstream provider apply their own "
-           "logging, retention, and training policies."),
+        tr("A native C++20 and Qt 6 Widgets translation client for Linux with local photo "
+           "OCR.\n\nVerbuno contains no telemetry. Photos are recognized on this device. Only text "
+           "you explicitly translate is sent to the API endpoint you configure. OpenRouter "
+           "and the selected upstream provider apply their own logging, retention, and "
+           "training policies."),
         this);
     description->setWordWrap(true);
     description->setTextInteractionFlags(Qt::TextSelectableByMouse);

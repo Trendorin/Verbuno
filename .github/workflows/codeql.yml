@@ -27,7 +27,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --no-install-recommends -y \
             cmake g++ ninja-build qt6-base-dev qt6-svg-dev qt6-tools-dev \
-            qtkeychain-qt6-dev
+            qtkeychain-qt6-dev libtesseract-dev
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4

@@ -2,12 +2,17 @@
 #include "core/HistoryStore.h"
 #include "core/InterfaceLanguageManager.h"
 #include "core/LanguageCatalog.h"
+#include "core/PhotoOcrEngine.h"
 #include "core/PromptBuilder.h"
 #include "core/ProviderClient.h"
 #include "core/SseDecoder.h"
 
 #include <QFileInfo>
+#include <QFont>
+#include <QImage>
+#include <QPainter>
 #include <QSet>
+#include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -24,6 +29,8 @@ private slots:
     void extractsActualOpenRouterRoute();
     void historyIsOptInAndOwnerOnly();
     void normalizesSupportedInterfaceLanguages();
+    void mapsPhotoOcrLanguages();
+    void recognizesTextFromPhotoLocally();
 };
 
 void CoreTests::validatesProviderEndpoints() {
@@ -156,5 +163,59 @@ void CoreTests::normalizesSupportedInterfaceLanguages() {
              QStringLiteral("en"));
 }
 
-QTEST_GUILESS_MAIN(CoreTests)
+void CoreTests::mapsPhotoOcrLanguages() {
+    QCOMPARE(PhotoOcrEngine::ocrCodeForTranslationLanguage(QStringLiteral("en")),
+             QStringLiteral("eng"));
+    QCOMPARE(PhotoOcrEngine::ocrCodeForTranslationLanguage(QStringLiteral("ru")),
+             QStringLiteral("rus"));
+    QCOMPARE(PhotoOcrEngine::ocrCodeForTranslationLanguage(QStringLiteral("uk-UA")),
+             QStringLiteral("ukr"));
+    QCOMPARE(PhotoOcrEngine::ocrCodeForTranslationLanguage(QStringLiteral("zh-Hant")),
+             QStringLiteral("chi_tra"));
+
+    const QStringList installed = {QStringLiteral("eng"), QStringLiteral("deu"),
+                                   QStringLiteral("rus")};
+    QCOMPARE(PhotoOcrEngine::preferredLanguage(installed, QStringLiteral("ru"),
+                                               QStringLiteral("de")),
+             QStringLiteral("rus"));
+    QCOMPARE(PhotoOcrEngine::preferredLanguage(installed, QStringLiteral("auto"),
+                                               QStringLiteral("de")),
+             QStringLiteral("deu"));
+    QCOMPARE(PhotoOcrEngine::languageDisplayName(QStringLiteral("eng+rus")),
+             QStringLiteral("English + Russian"));
+
+    PhotoOcrEngine engine;
+    QVERIFY2(engine.availableLanguages().contains(QStringLiteral("eng")),
+             "The test environment must provide English Tesseract data");
+}
+
+void CoreTests::recognizesTextFromPhotoLocally() {
+    QImage image(1800, 420, QImage::Format_RGB32);
+    image.fill(Qt::white);
+    {
+        QPainter painter(&image);
+        QFont font(QStringLiteral("DejaVu Sans"));
+        font.setPixelSize(150);
+        font.setWeight(QFont::Black);
+        painter.setFont(font);
+        painter.setPen(Qt::black);
+        painter.drawText(image.rect(), Qt::AlignCenter, QStringLiteral("VERBUNO PHOTO 123"));
+    }
+
+    PhotoOcrEngine engine;
+    QSignalSpy resultSpy(&engine, &PhotoOcrEngine::recognitionFinished);
+    engine.recognizeImage(image, QStringLiteral("synthetic.png"), QStringLiteral("eng"),
+                          PhotoOcrLayout::SingleBlock);
+    QTRY_VERIFY_WITH_TIMEOUT(resultSpy.size() == 1, 20000);
+
+    const PhotoOcrResult result = qvariant_cast<PhotoOcrResult>(resultSpy.takeFirst().at(0));
+    QVERIFY2(result.succeeded(),
+             qPrintable(PhotoOcrEngine::errorMessage(result.error, result.detail)));
+    QVERIFY(result.text.contains(QStringLiteral("VERBUNO"), Qt::CaseInsensitive));
+    QVERIFY(result.text.contains(QStringLiteral("123")));
+    QVERIFY(result.confidence > 40);
+    QCOMPARE(result.sourceLabel, QStringLiteral("synthetic.png"));
+}
+
+QTEST_MAIN(CoreTests)
 #include "CoreTests.moc"

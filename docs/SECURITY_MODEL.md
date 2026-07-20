@@ -4,6 +4,7 @@
 
 - provider API keys;
 - translation text and translation preferences;
+- selected image content and locally extracted text;
 - integrity of the configured provider destination;
 - local translation history;
 - predictable application lifetime and local instance commands.
@@ -40,6 +41,15 @@ Verbuno assumes the operating system and current desktop session are not already
 - SSE and non-streaming JSON are parsed structurally; HTML error pages are not rendered.
 - Partial requests are cancellable and only completed results enter history.
 
+### Local image processing
+
+- Image selection is explicit; there is no clipboard monitoring or automatic screen capture.
+- Files are decoded by Qt and recognized by the system Tesseract library without a network request.
+- Input files are limited to 32 MiB, reported dimensions and pixel counts are validated, and processing resolution is bounded before OCR.
+- OCR runs outside the UI thread and returns value-owned data through Qt's event system.
+- OCR output is bounded again by the configured translation input limit before it can be sent.
+- Images and filenames never enter translation history or provider request JSON.
+
 ### Local storage and IPC
 
 - History is opt-in, bounded and atomically saved with owner-only permissions.
@@ -54,6 +64,7 @@ Verbuno assumes the operating system and current desktop session are not already
 - Wayland window placement is compositor-controlled.
 - QtKeychain can prompt or block while a locked wallet is being unlocked by the desktop.
 - Free models have external quotas and can disappear without a Verbuno release.
+- OCR accuracy depends on image quality, typography and installed Tesseract language data; extracted text must be reviewed before translating sensitive or safety-critical material.
 
 ## Reporting
 
