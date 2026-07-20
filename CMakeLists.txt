@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 
 project(
     Verbuno
-    VERSION 0.3.0
+    VERSION 0.3.1
     DESCRIPTION "A native Linux AI translation client"
     HOMEPAGE_URL "https://github.com/Trendorin/Verbuno"
     LANGUAGES CXX

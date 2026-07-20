@@ -1,20 +1,19 @@
-# Verbuno 0.3.0
+# Verbuno 0.3.1
 
-This release adds a complete review-first workflow for translating text from photos without uploading the image itself.
+This maintenance release makes the selected interface language, provider, exact model and other non-secret preferences survive every application restart, and makes secure API-key reuse the default.
 
 ## Highlights
 
-- open a photo from disk, paste one from the clipboard or drop it directly onto the translation workspace;
-- decode and recognize PNG, JPEG, WebP, BMP and TIFF images locally with the system Tesseract 5 library;
-- run OCR outside the UI thread so the standard resizable Qt window remains responsive;
-- discover installed Tesseract language data at runtime and ship English, German, Russian and Ukrainian support with native packages;
-- choose automatic, single-block or sparse-text page segmentation and retry recognition without reopening the image;
-- automatically apply a second local contrast pass when the initial OCR confidence is low;
-- preview the selected image, inspect dimensions, recognition language and confidence, then edit the extracted text before translating;
-- reject oversized or unsupported images and bound both processing resolution and extracted text;
-- keep image pixels, local paths, filenames and OCR metadata out of provider requests and local history.
+- newly entered API keys are remembered through KWallet or Secret Service by default and are automatically reused after restart;
+- session-only key handling remains available by explicitly disabling persistent storage;
+- the settings window confirms whether a reusable key is available without displaying the secret;
+- secure key writes finish before the settings window closes, so wallet failures remain visible and recoverable;
+- non-secret settings are synchronized after every change to the stable `Trendorin/Verbuno` settings file;
+- the settings file is restricted to owner read/write permissions and symbolic-link targets are refused;
+- the General page displays the exact local settings path and any access or format error;
+- restart-level tests cover interface language, provider model, source and target languages, translation style, API-key storage preference and OCR options.
 
-Photo recognition never starts a network request. Only the extracted text is sent to the configured provider, and only after the user explicitly presses **Translate**. OCR quality still depends on the image, typography and installed language data, so the editable result should be reviewed.
+API keys are still never written to `QSettings`, history or logs. Persistent keys remain in the encrypted desktop credential service through QtKeychain, whose plaintext fallback is disabled. Photo OCR remains entirely local; only explicitly translated text reaches the selected provider.
 
 ## Release files
 

@@ -6,9 +6,11 @@
 
 class QCheckBox;
 class QComboBox;
+class QDialogButtonBox;
 class QLabel;
 class QLineEdit;
 class QPlainTextEdit;
+class QPushButton;
 class QSpinBox;
 
 namespace verbuno {
@@ -36,6 +38,9 @@ private:
     [[nodiscard]] ProviderSettings providerFromUi() const;
     [[nodiscard]] bool saveProviderDraft();
     void saveAndClose();
+    void finishSaveAndClose();
+    void setKeySaveBusy(bool busy);
+    void updateStorageStatus();
     void updateProviderControls();
     void populateModels(const QVector<ModelInfo>& models);
 
@@ -48,6 +53,7 @@ private:
     QComboBox* m_model = nullptr;
     QLineEdit* m_apiKey = nullptr;
     QCheckBox* m_rememberKey = nullptr;
+    QPushButton* m_saveKeyButton = nullptr;
     QCheckBox* m_denyCollection = nullptr;
     QCheckBox* m_zeroRetention = nullptr;
     QCheckBox* m_preferThroughput = nullptr;
@@ -65,6 +71,11 @@ private:
     QCheckBox* m_startInTray = nullptr;
     QCheckBox* m_closeToTray = nullptr;
     QComboBox* m_interfaceLanguage = nullptr;
+    QLabel* m_storageStatus = nullptr;
+    QDialogButtonBox* m_buttons = nullptr;
+
+    bool m_keySaveInProgress = false;
+    bool m_closeAfterKeySave = false;
 };
 
 } // namespace verbuno

@@ -29,6 +29,7 @@ Verbuno assumes the operating system and current desktop session are not already
 
 - Credentials are carried only in the authorization header of the selected request.
 - Persistent credentials use QtKeychain without plaintext fallback.
+- Persistent key storage is the default for a newly entered key; the user can explicitly choose session-only memory instead.
 - Provider identity is mapped to a SHA-256-derived wallet account name.
 - Likely token values in surfaced provider errors are redacted.
 - No command-line option accepts a key.
@@ -54,6 +55,7 @@ Verbuno assumes the operating system and current desktop session are not already
 
 - History is opt-in, bounded and atomically saved with owner-only permissions.
 - Existing history symlinks are rejected.
+- Non-secret settings are synchronously written with owner-only permissions; settings-file symlinks are refused and write failures are shown in the UI.
 - The single-instance channel accepts a small JSON array of known UI arguments; it does not accept content to translate.
 - A stale local socket is removed only after a connection attempt fails.
 

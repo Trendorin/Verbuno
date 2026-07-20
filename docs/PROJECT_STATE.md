@@ -8,7 +8,7 @@ This file is the durable source of truth for continuing the project without rely
 - Repository: `Trendorin/Verbuno`
 - Application ID: `io.github.trendorin.Verbuno`
 - Binary/package: `verbuno`
-- Version: `0.3.0`
+- Version: `0.3.1`
 - License: `GPL-3.0-or-later`
 - Stack: `C++20`, `Qt 6 Widgets`, `CMake`, no Electron, WebView, QML or background service
 - Primary desktop: KDE Plasma; supported fallback behavior for GNOME and other Qt-capable Linux desktops
@@ -25,12 +25,13 @@ The application is not offline: translated text leaves the machine for the confi
 
 - HTTPS is mandatory except for loopback endpoints.
 - Redirects are refused to prevent credential forwarding.
-- API keys are session-only unless the user opts into QtKeychain storage.
+- Newly entered API keys default to persistent QtKeychain storage; session-only mode remains available explicitly.
 - QtKeychain insecure/plaintext fallback is always disabled.
 - OpenRouter requests default to `provider.data_collection = "deny"`.
 - `provider.zdr = true` is an optional stricter mode because it reduces route availability.
 - Local history is disabled by default, owner-only when enabled, atomically written, bounded and user-clearable.
 - API keys are excluded from normal settings, history, command-line arguments, logs and error messages.
+- Non-secret settings are atomically synchronized to an owner-only file; write failures are visible in the General settings page.
 - Photo pixels, paths, filenames, OCR language and confidence metadata are excluded from provider requests and history.
 
 ## Native Linux repository baseline

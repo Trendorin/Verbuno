@@ -95,6 +95,13 @@
     <message><source>No readable text was found. Try another OCR language or layout.</source><translation>Kein lesbarer Text gefunden. Versuchen Sie eine andere OCR-Sprache oder ein anderes Layout.</translation></message>
   </context>
   <context>
+    <name>verbuno::AppSettings</name>
+    <message><source>The settings file is a symbolic link and will not be written: %1</source><translation>Die Einstellungsdatei ist ein symbolischer Link und wird nicht geschrieben: %1</translation></message>
+    <message><source>Verbuno cannot write its local settings file: %1</source><translation>Verbuno kann die lokale Einstellungsdatei nicht schreiben: %1</translation></message>
+    <message><source>The local settings file is damaged or has an invalid format: %1</source><translation>Die lokale Einstellungsdatei ist beschädigt oder hat ein ungültiges Format: %1</translation></message>
+    <message><source>Verbuno could not restrict the settings file to the current user: %1</source><translation>Verbuno konnte den Zugriff auf die Einstellungsdatei nicht auf den aktuellen Benutzer beschränken: %1</translation></message>
+  </context>
+  <context>
     <name>verbuno::SettingsDialog</name>
     <message><source>Verbuno Settings</source><translation>Verbuno-Einstellungen</translation></message>
     <message><source>Provider</source><translation>Anbieter</translation></message>
@@ -108,6 +115,10 @@
     <message><source>API key saved in the system keychain.</source><translation>API-Schlüssel wurde im System-Schlüsselbund gespeichert.</translation></message>
     <message><source>API key kept in memory for this session.</source><translation>API-Schlüssel bleibt für diese Sitzung im Arbeitsspeicher.</translation></message>
     <message><source>API key removed.</source><translation>API-Schlüssel wurde entfernt.</translation></message>
+    <message><source>The saved API key could not be opened: %1</source><translation>Der gespeicherte API-Schlüssel konnte nicht geöffnet werden: %1</translation></message>
+    <message><source>A saved API key is ready and will be reused after restart.</source><translation>Ein gespeicherter API-Schlüssel ist verfügbar und wird nach dem Neustart wiederverwendet.</translation></message>
+    <message><source>An API key is ready for this session.</source><translation>Für diese Sitzung ist ein API-Schlüssel verfügbar.</translation></message>
+    <message><source>No API key is currently saved.</source><translation>Derzeit ist kein API-Schlüssel gespeichert.</translation></message>
     <message><source>API provider</source><translation>API-Anbieter</translation></message>
     <message><source>OpenAI-compatible endpoint</source><translation>OpenAI-kompatibler Endpunkt</translation></message>
     <message><source>Custom provider</source><translation>Eigener Anbieter</translation></message>
@@ -118,7 +129,8 @@
     <message><source>Refresh free OpenRouter models</source><translation>Kostenlose OpenRouter-Modelle aktualisieren</translation></message>
     <message><source>API key</source><translation>API-Schlüssel</translation></message>
     <message><source>Paste a new key; stored keys are never shown</source><translation>Neuen Schlüssel einfügen; gespeicherte Schlüssel werden nie angezeigt</translation></message>
-    <message><source>Remember in KWallet / Secret Service</source><translation>In KWallet / Secret Service speichern</translation></message>
+    <message><source>Keep this API key between launches (KWallet / Secret Service)</source><translation>Diesen API-Schlüssel zwischen Starts behalten (KWallet / Secret Service)</translation></message>
+    <message><source>Enabled by default. The key is kept by the encrypted desktop credential service, never in Verbuno's ordinary settings file.</source><translation>Standardmäßig aktiviert. Der Schlüssel wird vom verschlüsselten Anmeldedatendienst der Desktop-Umgebung verwahrt und niemals in Verbunos normaler Einstellungsdatei gespeichert.</translation></message>
     <message><source>Save key</source><translation>Schlüssel speichern</translation></message>
     <message><source>Remove key</source><translation>Schlüssel entfernen</translation></message>
     <message><source>OpenRouter routing</source><translation>OpenRouter-Routing</translation></message>
@@ -128,6 +140,7 @@
     <message><source>Verbuno sends text only to this endpoint. OpenRouter is a proxy: the selected upstream provider may have its own retention or training policy. Free endpoints can be rate-limited or unavailable. Review OpenRouter privacy settings before sending sensitive content.</source><translation>Verbuno sendet Text nur an diesen Endpunkt. OpenRouter arbeitet als Vermittler: Der gewählte Zielanbieter kann eigene Aufbewahrungs- oder Trainingsrichtlinien haben. Kostenlose Routen können begrenzt oder nicht verfügbar sein. Prüfen Sie die OpenRouter-Datenschutzeinstellungen, bevor Sie sensible Inhalte senden.</translation></message>
     <message><source>Loading the current free-model catalog…</source><translation>Aktueller Katalog kostenloser Modelle wird geladen…</translation></message>
     <message><source>Paste a new API key first.</source><translation>Bitte zuerst einen neuen API-Schlüssel einfügen.</translation></message>
+    <message><source>Saving the API key…</source><translation>API-Schlüssel wird gespeichert…</translation></message>
     <message><source>Default style</source><translation>Standardstil</translation></message>
     <message><source>Maximum input</source><translation>Maximale Eingabe</translation></message>
     <message><source> characters</source><translation> Zeichen</translation></message>
@@ -154,6 +167,8 @@
     <message><source>Closing the main window keeps Verbuno in the tray</source><translation>Verbuno beim Schließen des Hauptfensters im Systembereich lassen</translation></message>
     <message><source>Desktop shortcut command: &lt;code&gt;verbuno --toggle&lt;/code&gt;&lt;br&gt;Bind this command in KDE or GNOME keyboard settings for a compositor-safe global shortcut.</source><translation>Befehl für ein Tastenkürzel: &lt;code&gt;verbuno --toggle&lt;/code&gt;&lt;br&gt;Diesen Befehl in den Tastatureinstellungen von KDE oder GNOME als zuverlässiges globales Kürzel festlegen.</translation></message>
     <message><source>KDE Plasma has native tray support. GNOME may require an AppIndicator extension; when no tray is available, Verbuno opens the main window instead.</source><translation>KDE Plasma unterstützt den Systembereich nativ. Unter GNOME kann eine AppIndicator-Erweiterung nötig sein; ohne Systembereich öffnet Verbuno stattdessen das Hauptfenster.</translation></message>
+    <message><source>Local settings are saved automatically in:&#xa;%1</source><translation>Lokale Einstellungen werden automatisch hier gespeichert:&#xa;%1</translation></message>
+    <message><source>Local settings storage error:&#xa;%1</source><translation>Fehler im lokalen Einstellungsspeicher:&#xa;%1</translation></message>
     <message><source>Enter a model identifier.</source><translation>Bitte eine Modellkennung eingeben.</translation></message>
     <message><source> · %1k context</source><translation> · %1 Tsd. Kontext</translation></message>
     <message><source>Loaded %1 currently free models.</source><translation>%1 derzeit kostenlose Modelle geladen.</translation></message>

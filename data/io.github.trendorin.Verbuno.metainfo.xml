@@ -28,6 +28,11 @@
   <url type="vcs-browser">https://github.com/Trendorin/Verbuno</url>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.3.1" date="2026-07-20">
+      <description>
+        <p>Made local preferences verifiably persistent, enabled secure remembered API keys by default, and added visible storage and credential status.</p>
+      </description>
+    </release>
     <release version="0.3.0" date="2026-07-20">
       <description>
         <p>Added asynchronous local photo OCR with image preview, installed-language discovery, layout modes, confidence feedback and an explicit review-before-translation workflow.</p>

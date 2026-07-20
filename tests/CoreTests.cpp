@@ -1,3 +1,4 @@
+#include "core/AppSettings.h"
 #include "core/EndpointValidator.h"
 #include "core/HistoryStore.h"
 #include "core/InterfaceLanguageManager.h"
@@ -12,6 +13,7 @@
 #include <QImage>
 #include <QPainter>
 #include <QSet>
+#include <QSettings>
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
@@ -28,6 +30,7 @@ private slots:
     void decodesFragmentedSseEvents();
     void extractsActualOpenRouterRoute();
     void historyIsOptInAndOwnerOnly();
+    void settingsSurviveRestartAndStayOwnerOnly();
     void normalizesSupportedInterfaceLanguages();
     void mapsPhotoOcrLanguages();
     void recognizesTextFromPhotoLocally();
@@ -147,6 +150,62 @@ void CoreTests::historyIsOptInAndOwnerOnly() {
     loaded.setEnabled(true);
     QCOMPARE(loaded.records().size(), qsizetype(1));
     QCOMPARE(loaded.records().first().translatedText, QStringLiteral("hallo"));
+}
+
+void CoreTests::settingsSurviveRestartAndStayOwnerOnly() {
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QSettings::Format previousFormat = QSettings::defaultFormat();
+    QSettings::setDefaultFormat(QSettings::IniFormat);
+    QSettings::setPath(QSettings::IniFormat, QSettings::UserScope, directory.path());
+
+    QString storagePath;
+    {
+        AppSettings settings;
+        QVERIFY(settings.storageHealthy());
+        QVERIFY(settings.rememberApiKey());
+
+        ProviderSettings provider = settings.provider();
+        provider.model = QStringLiteral("qwen/qwen3-30b-a3b:free");
+        provider.denyDataCollection = false;
+        settings.setProvider(provider);
+        settings.setInterfaceLanguage(QStringLiteral("de-DE"));
+        settings.setLanguagePair(QStringLiteral("ru"), QStringLiteral("ja"));
+        settings.setTranslationStyle(TranslationStyle::Technical);
+        settings.setRememberApiKey(true);
+        settings.setPhotoOcrLanguage(QStringLiteral("rus+eng"));
+        settings.setPhotoOcrLayout(2);
+
+        storagePath = settings.storagePath();
+        QVERIFY(QFileInfo::exists(storagePath));
+        QVERIFY(settings.storageHealthy());
+    }
+
+    {
+        AppSettings reloaded;
+        QVERIFY(reloaded.storageHealthy());
+        QCOMPARE(reloaded.interfaceLanguage(), QStringLiteral("de"));
+        QCOMPARE(reloaded.sourceLanguage(), QStringLiteral("ru"));
+        QCOMPARE(reloaded.targetLanguage(), QStringLiteral("ja"));
+        QCOMPARE(static_cast<int>(reloaded.translationStyle()),
+                 static_cast<int>(TranslationStyle::Technical));
+        QVERIFY(reloaded.rememberApiKey());
+        QCOMPARE(reloaded.provider().model, QStringLiteral("qwen/qwen3-30b-a3b:free"));
+        QVERIFY(!reloaded.provider().denyDataCollection);
+        QCOMPARE(reloaded.photoOcrLanguage(), QStringLiteral("rus+eng"));
+        QCOMPARE(reloaded.photoOcrLayout(), 2);
+    }
+
+    const QFileDevice::Permissions permissions = QFileInfo(storagePath).permissions();
+    QVERIFY(permissions.testFlag(QFileDevice::ReadOwner));
+    QVERIFY(permissions.testFlag(QFileDevice::WriteOwner));
+    QVERIFY(!permissions.testFlag(QFileDevice::ReadGroup));
+    QVERIFY(!permissions.testFlag(QFileDevice::WriteGroup));
+    QVERIFY(!permissions.testFlag(QFileDevice::ReadOther));
+    QVERIFY(!permissions.testFlag(QFileDevice::WriteOther));
+
+    QSettings::setDefaultFormat(previousFormat);
 }
 
 void CoreTests::normalizesSupportedInterfaceLanguages() {

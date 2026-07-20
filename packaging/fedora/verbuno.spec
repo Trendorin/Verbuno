@@ -1,5 +1,5 @@
 Name:           verbuno
-Version:        0.3.0
+Version:        0.3.1
 Release:        1%{?dist}
 Summary:        Native Linux AI translation client
 License:        GPL-3.0-or-later
@@ -63,6 +63,9 @@ OpenRouter or OpenAI-compatible endpoint without application telemetry.
 %{_datadir}/metainfo/io.github.trendorin.Verbuno.metainfo.xml
 
 %changelog
+* Mon Jul 20 2026 Trendorin - 0.3.1-1
+- Persist settings reliably and remember API keys by default
+
 * Mon Jul 20 2026 Trendorin - 0.3.0-1
 - Add local photo OCR with editable text extraction and language selection
 

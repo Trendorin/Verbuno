@@ -95,6 +95,13 @@
     <message><source>No readable text was found. Try another OCR language or layout.</source><translation>Читаемый текст не найден. Попробуйте другой язык OCR или тип разметки.</translation></message>
   </context>
   <context>
+    <name>verbuno::AppSettings</name>
+    <message><source>The settings file is a symbolic link and will not be written: %1</source><translation>Файл настроек является символической ссылкой и не будет записан: %1</translation></message>
+    <message><source>Verbuno cannot write its local settings file: %1</source><translation>Verbuno не может записать локальный файл настроек: %1</translation></message>
+    <message><source>The local settings file is damaged or has an invalid format: %1</source><translation>Локальный файл настроек повреждён или имеет неверный формат: %1</translation></message>
+    <message><source>Verbuno could not restrict the settings file to the current user: %1</source><translation>Verbuno не удалось ограничить доступ к файлу настроек текущим пользователем: %1</translation></message>
+  </context>
+  <context>
     <name>verbuno::SettingsDialog</name>
     <message><source>Verbuno Settings</source><translation>Настройки Verbuno</translation></message>
     <message><source>Provider</source><translation>Провайдер</translation></message>
@@ -108,6 +115,10 @@
     <message><source>API key saved in the system keychain.</source><translation>API-ключ сохранён в системном хранилище.</translation></message>
     <message><source>API key kept in memory for this session.</source><translation>API-ключ хранится в памяти до завершения сеанса.</translation></message>
     <message><source>API key removed.</source><translation>API-ключ удалён.</translation></message>
+    <message><source>The saved API key could not be opened: %1</source><translation>Не удалось открыть сохранённый API-ключ: %1</translation></message>
+    <message><source>A saved API key is ready and will be reused after restart.</source><translation>Сохранённый API-ключ готов и будет автоматически использован после перезапуска.</translation></message>
+    <message><source>An API key is ready for this session.</source><translation>API-ключ готов для текущего сеанса.</translation></message>
+    <message><source>No API key is currently saved.</source><translation>Сейчас API-ключ не сохранён.</translation></message>
     <message><source>API provider</source><translation>API-провайдер</translation></message>
     <message><source>OpenAI-compatible endpoint</source><translation>OpenAI-совместимый API</translation></message>
     <message><source>Custom provider</source><translation>Свой провайдер</translation></message>
@@ -118,7 +129,8 @@
     <message><source>Refresh free OpenRouter models</source><translation>Обновить бесплатные модели OpenRouter</translation></message>
     <message><source>API key</source><translation>API-ключ</translation></message>
     <message><source>Paste a new key; stored keys are never shown</source><translation>Вставьте новый ключ; сохранённые ключи никогда не показываются</translation></message>
-    <message><source>Remember in KWallet / Secret Service</source><translation>Запомнить в KWallet / Secret Service</translation></message>
+    <message><source>Keep this API key between launches (KWallet / Secret Service)</source><translation>Сохранять этот API-ключ между запусками (KWallet / Secret Service)</translation></message>
+    <message><source>Enabled by default. The key is kept by the encrypted desktop credential service, never in Verbuno's ordinary settings file.</source><translation>Включено по умолчанию. Ключ хранится в зашифрованной службе учётных данных рабочего стола и никогда не записывается в обычный файл настроек Verbuno.</translation></message>
     <message><source>Save key</source><translation>Сохранить ключ</translation></message>
     <message><source>Remove key</source><translation>Удалить ключ</translation></message>
     <message><source>OpenRouter routing</source><translation>Маршрутизация OpenRouter</translation></message>
@@ -128,6 +140,7 @@
     <message><source>Verbuno sends text only to this endpoint. OpenRouter is a proxy: the selected upstream provider may have its own retention or training policy. Free endpoints can be rate-limited or unavailable. Review OpenRouter privacy settings before sending sensitive content.</source><translation>Verbuno отправляет текст только на этот адрес. OpenRouter выступает посредником: выбранный конечный провайдер может применять собственную политику хранения и обучения. Бесплатные маршруты могут иметь ограничения или быть недоступны. Проверьте настройки приватности OpenRouter перед отправкой чувствительных данных.</translation></message>
     <message><source>Loading the current free-model catalog…</source><translation>Загрузка актуального каталога бесплатных моделей…</translation></message>
     <message><source>Paste a new API key first.</source><translation>Сначала вставьте новый API-ключ.</translation></message>
+    <message><source>Saving the API key…</source><translation>Сохранение API-ключа…</translation></message>
     <message><source>Default style</source><translation>Стиль по умолчанию</translation></message>
     <message><source>Maximum input</source><translation>Максимальный объём</translation></message>
     <message><source> characters</source><translation> символов</translation></message>
@@ -154,6 +167,8 @@
     <message><source>Closing the main window keeps Verbuno in the tray</source><translation>При закрытии главного окна оставлять Verbuno в трее</translation></message>
     <message><source>Desktop shortcut command: &lt;code&gt;verbuno --toggle&lt;/code&gt;&lt;br&gt;Bind this command in KDE or GNOME keyboard settings for a compositor-safe global shortcut.</source><translation>Команда для горячей клавиши: &lt;code&gt;verbuno --toggle&lt;/code&gt;&lt;br&gt;Назначьте её в настройках клавиатуры KDE или GNOME для надёжного глобального сочетания.</translation></message>
     <message><source>KDE Plasma has native tray support. GNOME may require an AppIndicator extension; when no tray is available, Verbuno opens the main window instead.</source><translation>KDE Plasma нативно поддерживает трей. В GNOME может понадобиться расширение AppIndicator; если трей недоступен, Verbuno открывает главное окно.</translation></message>
+    <message><source>Local settings are saved automatically in:&#xa;%1</source><translation>Локальные настройки автоматически сохраняются в:&#xa;%1</translation></message>
+    <message><source>Local settings storage error:&#xa;%1</source><translation>Ошибка локального хранилища настроек:&#xa;%1</translation></message>
     <message><source>Enter a model identifier.</source><translation>Введите идентификатор модели.</translation></message>
     <message><source> · %1k context</source><translation> · контекст %1 тыс.</translation></message>
     <message><source>Loaded %1 currently free models.</source><translation>Загружено бесплатных моделей: %1.</translation></message>

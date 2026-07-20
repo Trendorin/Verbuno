@@ -40,6 +40,7 @@ Verbuno is a native Linux translation client built with C++20 and Qt 6 Widgets. 
 | Models | Any model ID, the `openrouter/free` router, or a refreshed catalog of models whose reported prices are zero. |
 | Providers | OpenRouter by default; the response-reported model and upstream provider are shown instead of merely repeating the requested router ID. Custom OpenAI-compatible endpoints are supported. |
 | Interface | Runtime switching between English, Russian, Ukrainian and German without restarting the application. |
+| Local storage | Provider, exact model, interface and translation languages, translation/OCR preferences and tray behavior are restored after restart. |
 | Output | Server-sent events are decoded incrementally, with cancellation and clear provider errors. |
 
 ## Privacy boundary
@@ -49,7 +50,7 @@ Verbuno is a native Linux translation client built with C++20 and Qt 6 Widgets. 
 | No telemetry, analytics, crash uploads or background model calls. | That an external provider never logs, retains or trains on submitted text. |
 | Decodes and recognizes selected photos locally; image pixels and filenames are never sent to the translation provider. | Perfect OCR for blurred, handwritten, heavily stylized or low-contrast text. Review extracted text before sending it. |
 | Sends text only to the configured chat endpoint after an explicit translation action. | That a free endpoint remains available, fast or free in the future. |
-| Stores remembered keys in KWallet / Secret Service through QtKeychain, never in `QSettings`. | Anonymity from the provider, which still sees normal network and account metadata. |
+| Remembers newly entered keys in KWallet / Secret Service by default, never in `QSettings`; session-only mode remains available. | Anonymity from the provider, which still sees normal network and account metadata. |
 | Enables OpenRouter `data_collection: deny` by default and offers strict ZDR routing. | Availability of a model after privacy-incompatible endpoints have been excluded. |
 | Keeps local history off by default; an enabled history is owner-only and can be erased immediately. | Protection for text copied to another application or retained by the desktop clipboard. |
 
@@ -80,7 +81,7 @@ sha256sum --ignore-missing --check SHA256SUMS
 ## Configure
 
 1. Create an API key in OpenRouter or another provider.
-2. Open **Settings → Provider**, paste the key and choose whether it may be remembered in the system keychain.
+2. Open **Settings → Provider** and paste the key. Secure reuse after restart is enabled by default; disable it only for a session-only key.
 3. Keep `openrouter/free`, refresh the current free-model list, or enter an exact model ID.
 4. Leave **Exclude providers that collect prompt data** enabled. Enable **Zero Data Retention** only when the selected model has a compatible route.
 5. For a photo, press **Open photo**, paste an image, or drop it onto the workspace. Choose the OCR language and layout when needed, check the locally extracted text, then press **Translate**.
@@ -91,7 +92,9 @@ Photo recognition never starts a provider request. The image is decoded with str
 
 After a response begins, the workspace shows the exact model returned by the API. With OpenRouter it also shows the selected upstream provider, for example `Chutes via OpenRouter · qwen/qwen3-…`. Hover the summary to see the requested model or router such as `openrouter/free`.
 
-Keys kept only for the session never reach disk. A remembered key requires an available Secret Service implementation such as KWallet, GNOME Keyring or KeePassXC. Verbuno never enables QtKeychain's plaintext fallback.
+Keys kept only for the session never reach disk. A remembered key requires an available Secret Service implementation such as KWallet, GNOME Keyring or KeePassXC. Verbuno waits for the wallet result and never enables QtKeychain's plaintext fallback.
+
+All non-secret choices are saved automatically to the stable local settings file shown under **Settings → General**. The file is owner-only; Verbuno reports write or format errors instead of silently losing the selected interface language, provider, model or language pair.
 
 For another provider, select **OpenAI-compatible endpoint** and enter the complete `/chat/completions` URL and model ID. Plain HTTP is refused except for loopback services such as a local model server.
 

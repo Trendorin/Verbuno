@@ -29,6 +29,7 @@ public:
 
     void saveApiKey(const QString& apiKey, bool persist);
     void clearApiKey();
+    void checkApiKeyAvailability();
     void refreshFreeModels();
 
     [[nodiscard]] bool isBusy() const;
@@ -49,10 +50,11 @@ signals:
     void modelsFailed(const QString& message);
     void apiKeyStored(bool persistent, const QString& error);
     void apiKeyDeleted(const QString& error);
+    void apiKeyAvailabilityChanged(bool available, const QString& error);
     void historyChanged();
 
 private:
-    enum class SecretPurpose { None, Translation, Models };
+    enum class SecretPurpose { None, Translation, Models, AvailabilityCheck };
 
     void applyHistoryPolicy();
     void handleSecretRead(const QString& account, const QString& secret, const QString& error);

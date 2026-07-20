@@ -2,6 +2,20 @@
 
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions use semantic versioning.
 
+## [0.3.1] - 2026-07-20
+
+### Fixed
+
+- API-key persistence is enabled by default and a newly saved key is restored from KWallet or Secret Service after restarting Verbuno.
+- Interface language, provider, exact model, language pair, translation preferences and OCR options are synchronously written to the stable local settings file.
+- The settings dialog now waits for secure key storage to finish instead of closing before a wallet error can be shown.
+
+### Added
+
+- A credential status that confirms whether a reusable key is available without revealing it.
+- Visible local settings path and write-error reporting.
+- Owner-only permissions, symbolic-link refusal and restart-level persistence tests for the settings file.
+
 ## [0.3.0] - 2026-07-20
 
 ### Added
@@ -64,6 +78,7 @@ All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.
 - DEB, RPM, Arch, TXZ, source, SPDX, PKGBUILD and SHA-256 release artifacts.
 - Ubuntu, Fedora, Arch, sanitizer and CodeQL validation.
 
+[0.3.1]: https://github.com/Trendorin/Verbuno/releases/tag/v0.3.1
 [0.2.0]: https://github.com/Trendorin/Verbuno/releases/tag/v0.2.0
 [0.3.0]: https://github.com/Trendorin/Verbuno/releases/tag/v0.3.0
 [0.1.1]: https://github.com/Trendorin/Verbuno/releases/tag/v0.1.1

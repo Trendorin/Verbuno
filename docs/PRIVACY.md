@@ -43,7 +43,7 @@ For a custom endpoint, Verbuno cannot infer or enforce provider retention policy
 ## API keys
 
 - A session key is held in process memory only.
-- Persistent storage is opt-in and uses QtKeychain with KWallet or Secret Service.
+- Persistent storage is enabled by default for newly entered keys and uses QtKeychain with KWallet or Secret Service. It can be explicitly disabled for session-only use.
 - QtKeychain's insecure fallback is explicitly disabled.
 - A stored key is never displayed back in the settings window.
 - Keys are never written to `QSettings`, history, logs, release diagnostics or command-line arguments.
@@ -53,7 +53,7 @@ As with any desktop application, secrets exist in process memory while they are 
 
 ## Local settings and history
 
-Non-secret preferences are stored through Qt `QSettings` under the `Trendorin/Verbuno` identity.
+Non-secret preferences are stored through Qt `QSettings` under the stable `Trendorin/Verbuno` identity. The file is synchronized after every change, written atomically where the platform supports it, restricted to owner read/write permissions and refused when its path is a symbolic link. The General page shows the exact path and any detected write or format error.
 
 On the first launch after the product rename, Verbuno copies non-secret preferences and safe local history from the former TranslUnix identity. A remembered key is moved between the corresponding QtKeychain service names only after the new wallet entry is written successfully.
 

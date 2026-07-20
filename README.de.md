@@ -40,6 +40,7 @@ Verbuno ist ein nativer Linux-Übersetzungsclient auf Basis von C++20 und Qt 6 W
 | Modelle | Beliebige Modell-ID, `openrouter/free` oder ein aktueller Katalog mit als kostenlos gemeldeten Modellen. |
 | Anbieter | Standardmäßig OpenRouter; angezeigt werden Modell und Zielanbieter aus der Antwort statt nur der angeforderten Router-ID. Eigene OpenAI-kompatible Endpunkte werden unterstützt. |
 | Oberfläche | Sofortiger Wechsel zwischen Englisch, Russisch, Ukrainisch und Deutsch ohne Neustart. |
+| Lokaler Speicher | Anbieter, exaktes Modell, Oberflächen- und Übersetzungssprachen, Übersetzungs-/OCR-Optionen und Tray-Verhalten werden nach einem Neustart wiederhergestellt. |
 | Ausgabe | Inkrementelle SSE-Ausgabe, Abbruch und verständliche Anbieterfehler. |
 
 ## Datenschutzgrenzen
@@ -49,7 +50,7 @@ Verbuno ist ein nativer Linux-Übersetzungsclient auf Basis von C++20 und Qt 6 W
 | Keine Telemetrie, Analyse, Absturz-Uploads oder Modellaufrufe im Hintergrund. | Dass ein externer Anbieter Texte niemals protokolliert, speichert oder zum Training nutzt. |
 | Ausgewählte Fotos werden lokal dekodiert und erkannt; Pixel und Dateiname gehen nie an den Übersetzungsanbieter. | Perfekte OCR bei unscharfer, handschriftlicher, stark stilisierter oder kontrastarmer Schrift. Der erkannte Text sollte geprüft werden. |
 | Text wird erst nach einer ausdrücklichen Aktion an den konfigurierten Endpunkt gesendet. | Dass ein kostenloser Endpunkt dauerhaft verfügbar, schnell oder kostenlos bleibt. |
-| Gespeicherte Schlüssel liegen via QtKeychain in KWallet / Secret Service, nicht in `QSettings`. | Anonymität gegenüber dem Anbieter, der normale Netzwerk- und Kontometadaten sieht. |
+| Neue Schlüssel werden standardmäßig via QtKeychain in KWallet / Secret Service gespeichert, nie in `QSettings`; der reine Sitzungsmodus bleibt verfügbar. | Anonymität gegenüber dem Anbieter, der normale Netzwerk- und Kontometadaten sieht. |
 | OpenRouter `data_collection: deny` ist standardmäßig aktiv; striktes ZDR ist optional. | Modellverfügbarkeit nach dem Ausschluss nicht datenschutzkonformer Routen. |
 | Der lokale Verlauf ist standardmäßig aus und kann vollständig gelöscht werden. | Schutz von Text nach dem Kopieren in andere Anwendungen oder die Zwischenablage. |
 
@@ -76,7 +77,7 @@ sha256sum --ignore-missing --check SHA256SUMS
 ## Konfiguration
 
 1. Einen API-Schlüssel bei OpenRouter oder einem anderen Anbieter erstellen.
-2. **Einstellungen → Anbieter** öffnen, den Schlüssel einfügen und die Speicherung im System-Schlüsselbund wählen.
+2. **Einstellungen → Anbieter** öffnen und den Schlüssel einfügen. Sichere Wiederverwendung nach einem Neustart ist standardmäßig aktiv und kann für einen reinen Sitzungsschlüssel deaktiviert werden.
 3. `openrouter/free` verwenden, den aktuellen kostenlosen Katalog laden oder eine exakte Modell-ID eintragen.
 4. Den Ausschluss datensammelnder Anbieter aktiviert lassen. ZDR nur aktivieren, wenn eine passende Route existiert.
 5. Für ein Foto **Foto öffnen** wählen, ein Bild einfügen oder in den Arbeitsbereich ziehen. Bei Bedarf OCR-Sprache und Layout wählen, den lokal erkannten Text prüfen und **Übersetzen** drücken.
@@ -87,7 +88,9 @@ Die Fotoerkennung allein erzeugt keine Anbieteranfrage. Das Bild wird mit strikt
 
 Sobald die Antwort beginnt, zeigt der Arbeitsbereich das von der API gemeldete Modell. Bei OpenRouter wird auch der gewählte Zielanbieter angezeigt, etwa `Chutes über OpenRouter · qwen/qwen3-…`. Der Tooltip enthält weiterhin das angeforderte Modell oder den Router wie `openrouter/free`.
 
-Ein Sitzungsschlüssel wird nicht auf die Festplatte geschrieben. Für dauerhaftes Speichern wird KWallet, GNOME Keyring, KeePassXC oder ein anderer Secret Service benötigt. Der unsichere Klartext-Fallback von QtKeychain ist deaktiviert.
+Ein Sitzungsschlüssel wird nicht auf die Festplatte geschrieben. Für dauerhaftes Speichern wird KWallet, GNOME Keyring, KeePassXC oder ein anderer Secret Service benötigt. Verbuno wartet auf das Ergebnis des Schlüsselbunds; der unsichere Klartext-Fallback von QtKeychain bleibt deaktiviert.
+
+Alle nicht geheimen Optionen werden automatisch in der stabilen lokalen Einstellungsdatei gespeichert, deren Pfad unter **Einstellungen → Allgemein** angezeigt wird. Die Datei ist nur für den Eigentümer zugänglich; Schreib- oder Formatfehler werden gemeldet, statt Oberflächensprache, Anbieter, Modell oder Sprachpaar still zu verlieren.
 
 Für einen anderen Dienst werden die vollständige `/chat/completions`-URL und die Modell-ID eingetragen. Unverschlüsseltes HTTP ist nur für Loopback-Dienste erlaubt.
 

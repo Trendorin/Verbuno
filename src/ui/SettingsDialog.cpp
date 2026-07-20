@@ -7,6 +7,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
+#include <QDir>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -50,21 +51,21 @@ SettingsDialog::SettingsDialog(AppSettings* settings,
     tabs->addTab(createGeneralPage(), tr("General"));
     root->addWidget(tabs, 1);
 
-    auto* buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel |
-                                              QDialogButtonBox::RestoreDefaults,
-                                          this);
-    connect(buttons, &QDialogButtonBox::accepted, this, &SettingsDialog::saveAndClose);
-    connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
-    connect(buttons->button(QDialogButtonBox::RestoreDefaults), &QPushButton::clicked, this,
+    m_buttons = new QDialogButtonBox(QDialogButtonBox::Save | QDialogButtonBox::Cancel |
+                                         QDialogButtonBox::RestoreDefaults,
+                                     this);
+    connect(m_buttons, &QDialogButtonBox::accepted, this, &SettingsDialog::saveAndClose);
+    connect(m_buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
+    connect(m_buttons->button(QDialogButtonBox::RestoreDefaults), &QPushButton::clicked, this,
             [this] {
                 m_settings->resetProvider();
                 loadSettings();
                 m_providerStatus->setText(tr("OpenRouter defaults restored."));
             });
-    buttons->button(QDialogButtonBox::Save)->setText(tr("Save"));
-    buttons->button(QDialogButtonBox::Cancel)->setText(tr("Cancel"));
-    buttons->button(QDialogButtonBox::RestoreDefaults)->setText(tr("Restore defaults"));
-    root->addWidget(buttons);
+    m_buttons->button(QDialogButtonBox::Save)->setText(tr("Save"));
+    m_buttons->button(QDialogButtonBox::Cancel)->setText(tr("Cancel"));
+    m_buttons->button(QDialogButtonBox::RestoreDefaults)->setText(tr("Restore defaults"));
+    root->addWidget(m_buttons);
 
     connect(m_controller, &TranslationController::modelsLoaded, this,
             &SettingsDialog::populateModels);
@@ -72,21 +73,48 @@ SettingsDialog::SettingsDialog(AppSettings* settings,
             [this](const QString& error) { m_providerStatus->setText(error); });
     connect(m_controller, &TranslationController::apiKeyStored, this,
             [this](bool persistent, const QString& error) {
+                setKeySaveBusy(false);
                 if (!error.isEmpty()) {
                     m_providerStatus->setText(error);
+                    m_closeAfterKeySave = false;
                     return;
                 }
                 m_apiKey->clear();
                 m_providerStatus->setText(
                     persistent ? tr("API key saved in the system keychain.")
                                : tr("API key kept in memory for this session."));
+                if (m_closeAfterKeySave) {
+                    m_closeAfterKeySave = false;
+                    finishSaveAndClose();
+                }
             });
     connect(m_controller, &TranslationController::apiKeyDeleted, this,
             [this](const QString& error) {
                 m_providerStatus->setText(error.isEmpty() ? tr("API key removed.") : error);
             });
+    connect(m_controller, &TranslationController::apiKeyAvailabilityChanged, this,
+            [this](bool available, const QString& error) {
+                if (m_keySaveInProgress) {
+                    return;
+                }
+                if (!error.isEmpty()) {
+                    m_providerStatus->setText(
+                        tr("The saved API key could not be opened: %1").arg(error));
+                } else if (available && m_settings->rememberApiKey()) {
+                    m_providerStatus->setText(
+                        tr("A saved API key is ready and will be reused after restart."));
+                } else if (available) {
+                    m_providerStatus->setText(tr("An API key is ready for this session."));
+                } else {
+                    m_providerStatus->setText(tr("No API key is currently saved."));
+                }
+            });
+    connect(m_settings, &AppSettings::storageStatusChanged, this,
+            [this] { updateStorageStatus(); });
 
     loadSettings();
+    updateStorageStatus();
+    m_controller->checkApiKeyAvailability();
 }
 
 QWidget* SettingsDialog::createProviderPage() {
@@ -127,15 +155,22 @@ QWidget* SettingsDialog::createProviderPage() {
     m_apiKey->setEchoMode(QLineEdit::Password);
     m_apiKey->setPlaceholderText(tr("Paste a new key; stored keys are never shown"));
     m_apiKey->setClearButtonEnabled(true);
-    m_rememberKey = new QCheckBox(tr("Remember in KWallet / Secret Service"), keyBox);
+    m_rememberKey = new QCheckBox(
+        tr("Keep this API key between launches (KWallet / Secret Service)"), keyBox);
+    auto* keyStorageNote = new QLabel(
+        tr("Enabled by default. The key is kept by the encrypted desktop credential service, "
+           "never in Verbuno's ordinary settings file."),
+        keyBox);
+    keyStorageNote->setWordWrap(true);
     auto* keyButtons = new QHBoxLayout;
-    auto* saveKey = new QPushButton(tr("Save key"), keyBox);
+    m_saveKeyButton = new QPushButton(tr("Save key"), keyBox);
     auto* clearKey = new QPushButton(tr("Remove key"), keyBox);
-    keyButtons->addWidget(saveKey);
+    keyButtons->addWidget(m_saveKeyButton);
     keyButtons->addWidget(clearKey);
     keyButtons->addStretch();
     keyLayout->addWidget(m_apiKey);
     keyLayout->addWidget(m_rememberKey);
+    keyLayout->addWidget(keyStorageNote);
     keyLayout->addLayout(keyButtons);
     root->addWidget(keyBox);
 
@@ -175,7 +210,7 @@ QWidget* SettingsDialog::createProviderPage() {
         m_providerStatus->setText(tr("Loading the current free-model catalog…"));
         m_controller->refreshFreeModels();
     });
-    connect(saveKey, &QPushButton::clicked, this, [this] {
+    connect(m_saveKeyButton, &QPushButton::clicked, this, [this] {
         if (!saveProviderDraft()) {
             return;
         }
@@ -183,7 +218,9 @@ QWidget* SettingsDialog::createProviderPage() {
             m_providerStatus->setText(tr("Paste a new API key first."));
             return;
         }
-        m_settings->setRememberApiKey(m_rememberKey->isChecked());
+        m_closeAfterKeySave = false;
+        setKeySaveBusy(true);
+        m_providerStatus->setText(tr("Saving the API key…"));
         m_controller->saveApiKey(m_apiKey->text(), m_rememberKey->isChecked());
     });
     connect(clearKey, &QPushButton::clicked, this, [this] {
@@ -318,6 +355,11 @@ QWidget* SettingsDialog::createGeneralPage() {
         page);
     desktopNote->setWordWrap(true);
     root->addWidget(desktopNote);
+
+    m_storageStatus = new QLabel(page);
+    m_storageStatus->setWordWrap(true);
+    m_storageStatus->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    root->addWidget(m_storageStatus);
     root->addStretch();
     return page;
 }
@@ -398,10 +440,12 @@ bool SettingsDialog::saveProviderDraft() {
 }
 
 void SettingsDialog::saveAndClose() {
+    if (m_keySaveInProgress) {
+        return;
+    }
     if (!saveProviderDraft()) {
         return;
     }
-    m_settings->setRememberApiKey(m_rememberKey->isChecked());
     m_settings->setTranslationStyle(
         static_cast<TranslationStyle>(m_style->currentData().toInt()));
     m_settings->setPreserveFormatting(m_preserveFormatting->isChecked());
@@ -412,17 +456,52 @@ void SettingsDialog::saveAndClose() {
     m_settings->setHistoryRetentionDays(m_retentionDays->value());
     m_settings->setStartInTray(m_startInTray->isChecked());
     m_settings->setCloseToTray(m_closeToTray->isChecked());
+    if (!m_apiKey->text().trimmed().isEmpty()) {
+        m_closeAfterKeySave = true;
+        setKeySaveBusy(true);
+        m_providerStatus->setText(tr("Saving the API key…"));
+        m_controller->saveApiKey(m_apiKey->text(), m_rememberKey->isChecked());
+        return;
+    }
+
+    finishSaveAndClose();
+}
+
+void SettingsDialog::finishSaveAndClose() {
+    m_settings->setRememberApiKey(m_rememberKey->isChecked());
     const QString previousLanguage = m_settings->interfaceLanguage();
     const QString selectedLanguage = m_interfaceLanguage->currentData().toString();
     m_settings->setInterfaceLanguage(selectedLanguage);
-    if (!m_apiKey->text().trimmed().isEmpty()) {
-        m_controller->saveApiKey(m_apiKey->text(), m_rememberKey->isChecked());
-    }
     const bool languageChanged = previousLanguage != selectedLanguage;
     accept();
     if (languageChanged) {
         emit interfaceLanguageChanged(selectedLanguage);
     }
+}
+
+void SettingsDialog::setKeySaveBusy(bool busy) {
+    m_keySaveInProgress = busy;
+    m_apiKey->setEnabled(!busy);
+    m_rememberKey->setEnabled(!busy);
+    m_saveKeyButton->setEnabled(!busy);
+    if (m_buttons) {
+        m_buttons->button(QDialogButtonBox::Save)->setEnabled(!busy);
+        m_buttons->button(QDialogButtonBox::RestoreDefaults)->setEnabled(!busy);
+    }
+}
+
+void SettingsDialog::updateStorageStatus() {
+    if (!m_storageStatus) {
+        return;
+    }
+    if (m_settings->storageHealthy()) {
+        m_storageStatus->setText(
+            tr("Local settings are saved automatically in:\n%1")
+                .arg(QDir::toNativeSeparators(m_settings->storagePath())));
+        return;
+    }
+    m_storageStatus->setText(
+        tr("Local settings storage error:\n%1").arg(m_settings->storageError()));
 }
 
 void SettingsDialog::updateProviderControls() {

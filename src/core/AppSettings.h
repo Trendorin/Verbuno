@@ -59,15 +59,22 @@ public:
     [[nodiscard]] int photoOcrLayout() const;
     void setPhotoOcrLayout(int layout);
 
+    [[nodiscard]] QString storagePath() const;
+    [[nodiscard]] QString storageError() const;
+    [[nodiscard]] bool storageHealthy() const;
+
     void resetProvider();
 
 signals:
     void changed();
+    void storageStatusChanged(const QString& error);
 
 private:
     void sync();
+    void setStorageError(const QString& error);
 
     QSettings m_settings;
+    QString m_storageError;
 };
 
 } // namespace verbuno

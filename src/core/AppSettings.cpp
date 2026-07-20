@@ -2,6 +2,9 @@
 
 #include "core/InterfaceLanguageManager.h"
 
+#include <QFile>
+#include <QFileInfo>
+
 #include <algorithm>
 
 namespace verbuno {
@@ -11,12 +14,16 @@ constexpr auto kOpenRouterChat = "https://openrouter.ai/api/v1/chat/completions"
 constexpr auto kOpenRouterModels = "https://openrouter.ai/api/v1/models";
 constexpr auto kDefaultModel = "openrouter/free";
 constexpr auto kLegacyMigration = "migration/translunix-0.1";
+constexpr auto kStorageSchema = "storage/schemaVersion";
+constexpr int kCurrentStorageSchema = 1;
 } // namespace
 
 AppSettings::AppSettings(QObject* parent)
     : QObject(parent)
     , m_settings(QStringLiteral("Trendorin"), QStringLiteral("Verbuno")) {
     m_settings.setAtomicSyncRequired(true);
+    const int previousStorageSchema =
+        m_settings.value(QString::fromLatin1(kStorageSchema), 0).toInt();
     if (!m_settings.contains(QString::fromLatin1(kLegacyMigration))) {
         QSettings legacy(QStringLiteral("Trendorin"), QStringLiteral("TranslUnix"));
         for (const QString& key : legacy.allKeys()) {
@@ -25,8 +32,14 @@ AppSettings::AppSettings(QObject* parent)
             }
         }
         m_settings.setValue(QString::fromLatin1(kLegacyMigration), true);
-        m_settings.sync();
     }
+    if (previousStorageSchema < 1) {
+        // Earlier releases silently defaulted to session-only keys. The new persistent choice
+        // changes only the next explicit key save; it never copies a secret into normal settings.
+        m_settings.setValue(QStringLiteral("privacy/rememberApiKey"), true);
+    }
+    m_settings.setValue(QString::fromLatin1(kStorageSchema), kCurrentStorageSchema);
+    sync();
 }
 
 ProviderSettings AppSettings::provider() const {
@@ -175,7 +188,7 @@ void AppSettings::setInterfaceLanguage(const QString& languageCode) {
 }
 
 bool AppSettings::rememberApiKey() const {
-    return m_settings.value(QStringLiteral("privacy/rememberApiKey"), false).toBool();
+    return m_settings.value(QStringLiteral("privacy/rememberApiKey"), true).toBool();
 }
 
 void AppSettings::setRememberApiKey(bool enabled) {
@@ -217,6 +230,18 @@ void AppSettings::setPhotoOcrLayout(int layout) {
     sync();
 }
 
+QString AppSettings::storagePath() const {
+    return m_settings.fileName();
+}
+
+QString AppSettings::storageError() const {
+    return m_storageError;
+}
+
+bool AppSettings::storageHealthy() const {
+    return m_storageError.isEmpty();
+}
+
 void AppSettings::resetProvider() {
     const QStringList keys = {QStringLiteral("provider/name"),
                               QStringLiteral("provider/chatEndpoint"),
@@ -233,8 +258,48 @@ void AppSettings::resetProvider() {
 }
 
 void AppSettings::sync() {
+    const QFileInfo beforeSync(m_settings.fileName());
+    if (beforeSync.isSymLink()) {
+        setStorageError(tr("The settings file is a symbolic link and will not be written: %1")
+                            .arg(m_settings.fileName()));
+        emit changed();
+        return;
+    }
+
     m_settings.sync();
+
+    QString error;
+    switch (m_settings.status()) {
+    case QSettings::NoError:
+        break;
+    case QSettings::AccessError:
+        error = tr("Verbuno cannot write its local settings file: %1")
+                    .arg(m_settings.fileName());
+        break;
+    case QSettings::FormatError:
+        error = tr("The local settings file is damaged or has an invalid format: %1")
+                    .arg(m_settings.fileName());
+        break;
+    }
+
+    const QFileInfo afterSync(m_settings.fileName());
+    if (error.isEmpty() && afterSync.exists() &&
+        !QFile::setPermissions(m_settings.fileName(),
+                               QFileDevice::ReadOwner | QFileDevice::WriteOwner)) {
+        error = tr("Verbuno could not restrict the settings file to the current user: %1")
+                    .arg(m_settings.fileName());
+    }
+
+    setStorageError(error);
     emit changed();
+}
+
+void AppSettings::setStorageError(const QString& error) {
+    if (m_storageError == error) {
+        return;
+    }
+    m_storageError = error;
+    emit storageStatusChanged(m_storageError);
 }
 
 } // namespace verbuno

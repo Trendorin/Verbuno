@@ -9,12 +9,12 @@ Verbuno is one native desktop process. It has no daemon, embedded browser, local
 | `TrayController` | Owns application lifetime, tray integration, the standard main window, settings and live UI-language rebuilds. |
 | `TranslationPanel` | Translation interface with the actual provider/model summary, language pair and streamed output. |
 | `PhotoOcrEngine` | Discovers installed Tesseract language data, safely decodes images and performs asynchronous, confidence-scored local OCR. |
-| `TranslationController` | Validates user intent, obtains a credential, starts one request and optionally records the result. |
+| `TranslationController` | Validates user intent, obtains a credential, reports credential availability, starts one request and optionally records the result. |
 | `ProviderClient` | Builds Chat Completions requests, enforces network policy, decodes SSE, reads response routing metadata and loads OpenRouter models. |
 | `PromptBuilder` | Creates a provider-independent translation instruction with formatting and prompt-injection constraints. |
 | `SecretStore` | Keeps a session credential in memory and optionally delegates persistence to QtKeychain. |
 | `HistoryStore` | Implements opt-in, bounded, atomic local history with owner-only permissions. |
-| `AppSettings` | Persists non-secret preferences through `QSettings`. |
+| `AppSettings` | Atomically persists non-secret preferences through `QSettings`, restricts the file to its owner and reports storage failures. |
 | `InterfaceLanguageManager` | Loads the embedded Russian, Ukrainian or German Qt catalog and switches the complete UI at runtime. |
 | `SingleInstance` | Sends only UI commands between local instances through `QLocalServer`. |
 

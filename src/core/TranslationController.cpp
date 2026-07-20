@@ -30,13 +30,22 @@ TranslationController::TranslationController(AppSettings* settings,
     connect(m_secretStore, &SecretStore::secretStored, this,
             [this](const QString& account, bool persistent, const QString& error) {
                 if (account == credentialAccount()) {
+                    if (error.isEmpty()) {
+                        m_settings->setRememberApiKey(persistent);
+                    }
                     emit apiKeyStored(persistent, error);
+                    if (error.isEmpty()) {
+                        emit apiKeyAvailabilityChanged(true, {});
+                    }
                 }
             });
     connect(m_secretStore, &SecretStore::secretDeleted, this,
             [this](const QString& account, const QString& error) {
                 if (account == credentialAccount()) {
                     emit apiKeyDeleted(error);
+                    if (error.isEmpty()) {
+                        emit apiKeyAvailabilityChanged(false, {});
+                    }
                 }
             });
     connect(m_client, &ProviderClient::translationStarted, this, [this] {
@@ -116,6 +125,16 @@ void TranslationController::clearApiKey() {
     m_secretStore->deleteSecret(credentialAccount());
 }
 
+void TranslationController::checkApiKeyAvailability() {
+    if (isBusy() || m_secretPurpose != SecretPurpose::None) {
+        emit apiKeyAvailabilityChanged(false,
+                                       tr("Wait for the current provider request to finish."));
+        return;
+    }
+    m_secretPurpose = SecretPurpose::AvailabilityCheck;
+    m_secretStore->readSecret(credentialAccount(), m_settings->rememberApiKey());
+}
+
 void TranslationController::refreshFreeModels() {
     if (isBusy() || m_secretPurpose != SecretPurpose::None) {
         emit modelsFailed(tr("Wait for the current provider request to finish."));
@@ -169,7 +188,16 @@ void TranslationController::handleSecretRead(const QString& account,
     const SecretPurpose purpose = m_secretPurpose;
     m_secretPurpose = SecretPurpose::None;
 
+    if (purpose == SecretPurpose::AvailabilityCheck) {
+        emit apiKeyAvailabilityChanged(!secret.isEmpty(), error);
+        return;
+    }
+
     if (purpose == SecretPurpose::Models) {
+        if (!error.isEmpty()) {
+            emit modelsFailed(error);
+            return;
+        }
         m_client->fetchFreeModels(m_settings->provider(), secret);
         return;
     }
